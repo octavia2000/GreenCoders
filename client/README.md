@@ -100,18 +100,6 @@ npm run lint         # Run ESLint
 npm run test         # Run Jest tests
 npm run test:watch   # Run tests in watch mode
 ```
-
-## Design System
-
-### Color Palette
-- **Primary Green**: `#22c55e` (eco-600)
-- **Light Green**: `#f0fdf4` (eco-50)
-- **Dark Green**: `#15803d` (eco-700)
-
-### Typography
-- **Font Family**: System UI, Segoe UI, Roboto
-- **Font Sizes**: Responsive scale from 12px to 48px
-
 ### Components
 All UI components follow the shadcn/ui design system with custom eco-friendly theming.
 
@@ -154,59 +142,3 @@ We welcome contributions from developers who share our vision of sustainable tec
 - Follow conventional commit messages
 - Squash commits before merging
 - All PRs require code review
-
-## Roadmap
-
-### Phase 1 (Current) - Foundation
-- [x] Project setup and structure
-- [x] Basic UI components
-- [x] Responsive layout
-- [ ] Product catalog page
-- [ ] Shopping cart functionality
-
-### Phase 2 - Core Features
-- [ ] User authentication
-- [ ] Product management
-- [ ] Order processing
-- [ ] Payment integration
-
-### Phase 3 - Sustainability Features
-- [ ] CO₂ impact calculation
-- [ ] Eco-badge system
-- [ ] Vendor certification
-- [ ] Impact reporting
-
-### Phase 4 - Advanced Features
-- [ ] Admin dashboard
-- [ ] Analytics and insights
-- [ ] Community features
-- [ ] Mobile app
-
-## Bug Reports & Feature Requests
-
-Found a bug or have a feature idea? We'd love to hear from you!
-
-- **Bug Reports**: [Create an issue](https://github.com/ZEED2468/GreenCoders/issues/new?template=bug_report.md)
-- **Feature Requests**: [Create an issue](https://github.com/ZEED2468/GreenCoders/issues/new?template=feature_request.md)
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
-
-## Team
-
-**Prepared By**: H.O.P, GreenMart Startup  
-**Project Lead**: [Your Name]  
-**Date**: September 2025
-
-## Acknowledgments
-
-- Thanks to all contributors who help make sustainable shopping accessible
-- Inspired by the growing need for environmental transparency in e-commerce
-- Built with love for our planet
-
----
-
-**Made with care for a sustainable future**
-
-For more information, visit our [documentation](./docs/) or check out the [backend repository](../server/).
