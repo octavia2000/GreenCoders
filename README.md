@@ -177,5 +177,3 @@ We welcome contributions from developers who share our vision of sustainable tec
 - **Documentation** - Help others understand the project
 - **Testing** - Ensure code quality and reliability
 - **Design & UI** - Enhance visual design and usability
-
-#
