@@ -1,4 +1,4 @@
-import { Button } from "../ui/button"
+import { Button } from "@/components/ui/button"
 
 export function Hero() {
   return (
@@ -15,7 +15,7 @@ export function Hero() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <Button variant="eco" size="lg" className="px-8">
+          <Button variant="eco" size="lg" className="px-8 bg-green-500">
             Start Shopping Green
           </Button>
           <Button variant="outline" size="lg" className="px-8">

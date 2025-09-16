@@ -1,6 +1,7 @@
 import { Header } from './components/layout/Header'
 import { Hero } from './components/common/Hero'
 
+
 function App() {
   return (
     <div className="min-h-screen bg-background">
