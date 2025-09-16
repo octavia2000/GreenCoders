@@ -32,12 +32,21 @@ GreenCoders/
 │   │   └── utils/         # Helper functions
 │   ├── public/            # Static assets
 │   └── package.json       # Frontend dependencies
-├── server/                # Node.js Backend API
+├── server/                # Node.js Backend (NestJS)
 │   ├── src/
-│   │   ├── modules/       # Feature modules (NestJS)
-│   │   ├── common/        # Shared utilities
-│   │   └── database/      # Database configurations
-│   └── package.json       # Backend dependencies
+│   │   ├── app.controller.ts
+│   │   ├── app.module.ts
+│   │   ├── app.service.ts
+│   │   ├── main.ts
+│   │   ├── config/
+│   │   │   ├── app.config.ts
+│   │   │   └── database.config.ts
+│   │   ├── entities/
+│   │   └── modules/
+│   │       └── database/
+│   │           └── database.module.ts
+│   ├── README.md          # Backend documentation
+│   └── SETUP.md           # Backend setup guide
 ├── docs/                  # Project documentation
 ├── CONTRIBUTING.md        # Contribution guidelines
 └── README.md             # This file
@@ -54,10 +63,10 @@ GreenCoders/
 - **Jest** - Testing framework
 
 ### Backend (Server)
-- **Node.js + TypeScript** - Runtime and type safety
-- **NestJS** - Scalable Node.js framework
-- **PostgreSQL** - Robust relational database
-- **JWT** - Secure authentication
+- **NestJS (Node.js + TypeScript)** - Backend framework
+- **Express** - HTTP platform
+- **Cookie-based auth direction** - Cookies reserved for auth
+- **PostgreSQL (future)** - Database with JSONB for eco-data
 - **Jest** - Testing framework
 
 ### DevOps & Infrastructure
@@ -93,8 +102,17 @@ npm install
 npm run dev
 
 # Open browser to http://localhost:5173
+
+### Backend Setup
+```bash
+# In a new terminal
+cd server
+npm install
+npm run start:dev
 ```
-```
+
+Backend docs: see `server/README.md` and `server/SETUP.md`.
+
 
 ## Key Features
 
@@ -130,43 +148,12 @@ Built with WCAG guidelines to ensure the platform is accessible to all users.
 ### Performance & Efficiency
 Optimized code that reduces energy consumption and server load.
 
-## Roadmap
-
-### Phase 1: Foundation (Current)
-- [x] Project setup and architecture
-- [x] Frontend starter kit with React + Vite
-- [x] UI component library with eco-theming
-- [x] Basic responsive layout
-- [ ] Backend API foundation with NestJS
-- [ ] Database schema design
-
-### Phase 2: Core Marketplace
-- [ ] User authentication and profiles
-- [ ] Product catalog with search and filters
-- [ ] Shopping cart and checkout flow
-- [ ] Vendor registration and onboarding
-- [ ] Basic order management
-
-### Phase 3: Sustainability Engine
-- [ ] CO₂ impact calculation algorithms
-- [ ] Eco-certification verification system
-- [ ] Real-time sustainability tracking
-- [ ] Impact badges and visual indicators
-- [ ] Environmental reporting dashboard
-
-### Phase 4: Advanced Features
-- [ ] Admin dashboard with analytics
-- [ ] Vendor impact reporting
-- [ ] Community features and forums
-- [ ] Mobile application
-- [ ] API for third-party integrations
-
 ## Contributing
 
 We welcome contributions from developers who share our vision of sustainable technology! 
 
 ### How to Get Started
-1. Read our [Contributing Guidelines](CONTRIBUTING.md)
+1. Read our [Contributing Guidelines](Contributing.md)
 2. Check out [Good First Issues](https://github.com/ZEED2468/GreenCoders/labels/good%20first%20issue)
 3. Join our community discussions
 4. Submit your first PR!

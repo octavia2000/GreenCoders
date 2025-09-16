@@ -50,7 +50,7 @@ Before contributing, ensure you have:
    # Frontend (in client directory)
    npm run dev
    
-   # Backend (in server directory, when available)
+   # Backend (in server directory)
    npm run dev
    ```
 
