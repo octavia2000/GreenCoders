@@ -44,9 +44,9 @@ export function Header() {
 
         
         <div className="flex space-x-4">
-          <Heart className="w-5 h-5 text-gray-600 hover:text-green-600" />
-          <User className="w-5 h-5 text-gray-600 hover:text-green-600" />
-          <ShoppingCart className="w-5 h-5 text-gray-600 hover:text-green-600" />
+          <Heart className="w-5 h-5 text-gray-600 cursor-pointer hover:text-green-600" />
+          <User className="w-5 h-5 text-gray-600 cursor-pointer hover:text-green-600" />
+          <ShoppingCart className="w-5 h-5 text-gray-600 cursor-pointer hover:text-green-600" />
         </div>
 
         
