@@ -1,19 +1,18 @@
-import { Type } from 'class-transformer';
-import { IsString, IsEmail, IsNumber} from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, Matches, MinLength} from 'class-validator';
 
 export class CreateUserDto {
-  @IsString()
+  @IsNotEmpty()
+  @MinLength(3, { message: 'Username should be at least 3 characters' })
   username: string;
 
   @IsEmail()
   email: string;
 
-  @IsString()
+  @MinLength(6, { message: 'Password should be at least 6 characters' })
   password: string;
 
-  @IsNumber()
-  @Type(() => Number)
-  phoneNumber: number;
+   @Matches(/^\d{11}$/, { message: 'Phone number should be 11 digits' })
+  phoneNumber: string;
 
   @IsString()
   confirmPassword: string;

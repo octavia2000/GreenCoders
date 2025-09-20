@@ -6,20 +6,35 @@ export class UserEntity{
     @PrimaryGeneratedColumn('increment')
     id: number;
 
-    @Column()
+    @Column({unique: true})
     username: string;
 
-    @Column()
+    @Column({unique: true})
     email: string;
 
     @Column()
     password: string;
 
-    @Column()
-    phoneNumber: number;
+    @Column({unique: true})
+    phoneNumber: string;
+
+    @Column({ default: false })
+    isNumberVerified: boolean;
+
+    @Column({ nullable: true })
+    phoneOtp: string;
+
+    @Column({ nullable: true, type:"timestamptz" })
+    otpExpiresAt: Date;
+
+    @Column({ nullable: true })
+    resetPassword: string;
+
+    @Column({ nullable: true, type: 'timestamptz' })
+    rPExpiresAt: Date;
 
     @BeforeInsert()
-    @BeforeUpdate()
+    
     async hashPassword() {
         if (this.password) {
             const salt = await bcrypt.genSalt(10);
