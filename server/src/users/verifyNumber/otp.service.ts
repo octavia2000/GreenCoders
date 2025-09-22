@@ -10,7 +10,7 @@ export class OtpService{
             @InjectRepository(UserEntity)
             private readonly userRepository: Repository<UserEntity>,
             private readonly smsService: SmsService,) {}
-    async generateOtp(phoneNumber: string): Promise<void> {
+    async generateOtp(phoneNumber: string) {
         const user = await this.userRepository.findOne({ where: { phoneNumber } });
         if (!user) throw new NotFoundException('User does not exist');
         
@@ -22,6 +22,8 @@ export class OtpService{
         
         await this.userRepository.save(user);
         this.smsService.sendOtp(user.phoneNumber, otp);
+
+        return user;
     }
     
     async verifyOtp(phoneNumber: string, otp: string): Promise<{ message: string}> {
