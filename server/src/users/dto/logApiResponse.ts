@@ -1,5 +1,5 @@
 export class logApiResponse {
-  id: number;
+  id: string;
   username: string;
   email: string;
   phoneNumber: string;

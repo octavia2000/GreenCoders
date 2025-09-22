@@ -37,19 +37,19 @@ export class UserService {
     }
     async logUser(logUserDto: LogUserDto): Promise<logApiResponse> {
         const user = await this.userRepository.findOne({where: { email: logUserDto.email },});
-    
+
         if (!user) {
           throw new HttpException('Invalid Email or Password',HttpStatus.UNAUTHORIZED,);}
-    
+
         const matchPassword = await compare(logUserDto.password, user.password);
 
         if (!matchPassword) {
           throw new HttpException('Invalid Email or Password',HttpStatus.UNAUTHORIZED,);}
-         
+
         if(!user.isNumberVerified){
           await this.otpService.generateOtp(user.phoneNumber);
           throw new HttpException('You have to verify, recheck sms for Otp', HttpStatus.UNAUTHORIZED)}
-    
+
         const { password, ...apiResponse2 } = user;
         return apiResponse2;
     }
