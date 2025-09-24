@@ -1,29 +1,31 @@
-import { Header } from './components/layout/Header'
-import { Hero } from './components/common/Hero'
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LandingPage from './app/(landing)/page';
+import ExplorePage from './app/(landing)/explore/page';
+import LoginPage from './app/(auth)/login/page';
+import RegisterPage from './app/(auth)/register/page';
+import ForgotPasswordPage from './app/(auth)/forgot-password/page';
+import ResetPasswordPage from './app/(auth)/reset-password/page';
+import EmailVerificationPage from './app/(auth)/email-verification/page';
 
 function App() {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main>
-        <Hero />
-        <section className="py-12 bg-white">
-          <div className="container mx-auto px-4 text-center">
-            <div className="bg-eco-50 border border-eco-200 rounded-lg p-6 max-w-2xl mx-auto">
-              <h2 className="text-xl font-semibold text-eco-800 mb-2">
-                GreenCoders Sustainability Marketplace
-              </h2>
-              <p className="text-eco-700">
-                GreenCoders Sustainability Marketplace is currently being built. 
-                This is the frontend starter kit with React, Vite, TailwindCSS, and shadcn/ui.
-              </p>
-            </div>
-          </div>
-        </section>
-      </main>
-    </div>
-  )
+    <Router>
+      <div className="min-h-screen bg-background">
+        <Routes>
+          {/* Landing routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/explore" element={<ExplorePage />} />
+
+          {/* Auth routes */}
+          <Route path="/auth/login" element={<LoginPage />} />
+          <Route path="/auth/register" element={<RegisterPage />} />
+          <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/email-verification" element={<EmailVerificationPage />} />
+        </Routes>
+      </div>
+    </Router>
+  );
 }
 
-export default App
+export default App;

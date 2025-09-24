@@ -1,10 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { STORAGE_KEYS } from '../../constants';
+import { databaseConfig } from '../../lib/config/database.config';
 
 // Helper function to load cart from localStorage
 const loadCartFromStorage = () => {
   try {
-    const serializedCart = localStorage.getItem(STORAGE_KEYS.CART_ITEMS);
+    const serializedCart = localStorage.getItem(databaseConfig.storage.cart);
     if (serializedCart === null) {
       return [];
     }
@@ -18,7 +18,7 @@ const loadCartFromStorage = () => {
 const saveCartToStorage = (items) => {
   try {
     const serializedCart = JSON.stringify(items);
-    localStorage.setItem(STORAGE_KEYS.CART_ITEMS, serializedCart);
+    localStorage.setItem(databaseConfig.storage.cart, serializedCart);
   } catch (err) {
     // Ignore write errors
   }
