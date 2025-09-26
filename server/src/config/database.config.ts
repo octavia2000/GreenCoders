@@ -1,20 +1,25 @@
-import { registerAs } from '@nestjs/config';
-import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { config } from 'dotenv';
 
-export default registerAs(
-  'database',
-  (): TypeOrmModuleOptions => ({
+// Load environment variables from .env file
+config();
+export default () => ({
+  database: {
     type: 'postgres',
-    host: process.env.DATABASE_HOST || 'localhost',
-    port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
-    username: process.env.DATABASE_USERNAME || 'postgres',
-    password: process.env.DATABASE_PASSWORD || 'password',
-    database: process.env.DATABASE_NAME || 'greencoders_db',
-    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-    synchronize: process.env.NODE_ENV === 'development',
-    logging: process.env.NODE_ENV === 'development',
-    migrations: [__dirname + '/../migrations/*{.ts,.js}'],
-    migrationsRun: false,
-  }),
-);
-
+    host: process.env.DATABASE_HOST,
+    port: parseInt(process.env.DATABASE_PORT, 10),
+    username: process.env.DATABASE_USERNAME,
+    password: process.env.DATABASE_PASSWORD,
+    database: process.env.DATABASE_NAME,
+    entities: ['dist/**/*.entity{.ts,.js}'],
+    migrations: ['dist/database/migrations/*.js'],
+    synchronize: false,
+    logging: false,
+    ssl:
+      process.env.DATABASE_SSL === 'require'
+        ? {
+            rejectUnauthorized: false,
+          }
+        : false,
+  },
+});

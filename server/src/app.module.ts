@@ -2,16 +2,18 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
-import { OtpModule } from './users/verifyNumber/otp.module';
-import { SigninModule } from './users/auth/signinAuth/signin.module';
-import { SignupModule } from './users/auth/signupAuth/signup.module';
-import { PasswordModule } from './users/passwordRecovery/password.modulee';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 import databaseConfig from './config/database.config';
 import { DatabaseModule } from './database/database.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({isGlobal: true,load: [databaseConfig],envFilePath: '.env'}),
-            DatabaseModule, OtpModule,SigninModule,SignupModule,PasswordModule,],
+  imports: [
+    ConfigModule.forRoot({isGlobal: true,load: [databaseConfig],envFilePath: '.env'}),
+    DatabaseModule, 
+    AuthModule,
+    UsersModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
@@ -32,3 +34,4 @@ export class AppModule {}
  * SENDCHAMP_BASE_URL=https://api.sendchamp.com/api/v1
  * SENDCHAMP_SENDER_ID=Sendchamp
  */
+
