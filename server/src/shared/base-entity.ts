@@ -11,9 +11,6 @@ export abstract class BaseEntity {
   updatedAt: Date;
 
   @Column({ nullable: true })
-  refreshToken: string;
-
-  @Column({ nullable: true })
   resetPasswordToken: string;
 }
 
