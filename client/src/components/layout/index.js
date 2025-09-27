@@ -1,4 +1,4 @@
 // Layout Components exports
 export { Header } from './Header';
-export { Layout } from './Layout';
+// export { Layout } from './Layout';
 export { Footer } from './Footer';

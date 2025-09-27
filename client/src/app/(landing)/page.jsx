@@ -1,4 +1,4 @@
-import { Layout } from "../../components/layout";
+// import { Layout } from "../../components/layout";
 import {
   Hero,
   FeaturedProducts,
@@ -11,7 +11,8 @@ import {
 
 export default function LandingPage() {
   return (
-    <Layout>
+    // <Layout>
+    <>
       <Hero />
       <FeaturedProducts />
       <ShopByCategory />
@@ -19,6 +20,7 @@ export default function LandingPage() {
       <PresentlyOnSales />
       <WhyChooseUs />
       <PreFooterShowcase />
-    </Layout>
+    </>
+    // </Layout>
   );
 }
