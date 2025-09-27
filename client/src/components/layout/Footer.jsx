@@ -6,7 +6,7 @@ import tiktokIcon from "../../assets/images/tiktok.svg";
 
 export function Footer() {
   return (
-    <footer className="bg-gray-100 border-t border-blue-400 py-[5rem]">
+    <footer className="bg-gray-100 py-[5rem]">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-700 px-[7rem]">
         <div className="flex flex-col justify-between">
           <p className="max-w-xs">

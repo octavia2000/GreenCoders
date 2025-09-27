@@ -7,6 +7,7 @@ import ForgotPasswordPage from "./app/(auth)/forgot-password/page";
 import ResetPasswordPage from "./app/(auth)/reset-password/page";
 import EmailVerificationPage from "./app/(auth)/email-verification/page";
 import Layout from "./Layout";
+import { ProductsPage } from "./components/Products";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route element={<Layout />}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/explore" element={<ExplorePage />} />
+          <Route path="/products" element={<ProductsPage />} />
         </Route>
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
