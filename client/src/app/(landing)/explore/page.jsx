@@ -1,4 +1,4 @@
-import { Header } from '../../../components/layout/Header';
+// import { Header } from '../../../components/layout/Header';
 import { SearchForm } from '../../../components/ui/SearchForm';
 import { ProductCard } from '../../../components/ui/ProductCard';
 
@@ -56,7 +56,7 @@ export default function ExplorePage() {
 
   return (
     <>
-      <Header />
+      {/* <Header /> */}
       <main className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
           {/* Search Section */}
