@@ -11,6 +11,7 @@ export interface UserResponse {
   username: string;
   email: string;
   isNumberVerified: boolean;
+  authMethod?: string; // 'email' | 'google'
   createdAt?: string;
 }
 

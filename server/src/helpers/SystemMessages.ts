@@ -35,5 +35,12 @@ export const PHONE_NUMBER_VERIFIED_SUCCESSFULLY = 'Phone number verified success
 export const WELCOME_EMAIL_SENT_SUCCESSFULLY = 'Welcome email sent successfully';
 export const PASSWORD_RESET_TOKEN_SENT = 'Password reset token sent to email';
 export const OTP_SENT_TO_PHONE = '4-digit OTP sent to phone number';
-
-
+export const OTP_SEND_FAILED = 'Failed to send OTP';
+export const GOOGLE_AUTH_REQUIRED = 'This account uses Google authentication. Please sign in with Google instead.';
+export const PASSWORD_COMPARISON_LOG = 'Password comparison for user login';
+export const USER_FOUND_BY_PHONE = 'User found by phone number';
+export const USER_NOT_FOUND_BY_PHONE = 'User not found with provided phone number';
+export const OTP_GENERATED_AND_SENT = 'OTP generated and sent to phone';
+export const WELCOME_EMAIL_SENDING = 'Sending welcome email to user';
+export const WELCOME_EMAIL_SENT = 'Welcome email sent successfully';
+export const WELCOME_EMAIL_FAILED = 'Failed to send welcome email';
