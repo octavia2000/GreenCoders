@@ -6,6 +6,8 @@ import RegisterPage from './app/(auth)/register/page';
 import ForgotPasswordPage from './app/(auth)/forgot-password/page';
 import ResetPasswordPage from './app/(auth)/reset-password/page';
 import EmailVerificationPage from './app/(auth)/email-verification/page';
+import Layout from './Layout';
+import { ProductsPage } from './components/Products';
 import NotFoundPage from './app/not-found';
 import { ToastProvider } from './components/providers/ToastProvider';
 
@@ -15,9 +17,12 @@ function App() {
       <div className="min-h-screen bg-background">
         <Routes>
           {/* Landing routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/explore" element={<ExplorePage />} />
-
+          <Route element={<Layout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/products" element={<ProductsPage />} />
+          </Route>
+          
           {/* Auth routes */}
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
