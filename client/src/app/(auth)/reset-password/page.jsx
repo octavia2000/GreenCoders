@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AuthLayout } from '../../../components/ui/AuthLayout';
@@ -11,15 +11,25 @@ import { cn } from '../../../lib/utils';
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { resetPassword, isLoading, error } = useAuthActions();
+  
+  const resetToken = location.state?.resetToken || '';
 
   const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { email: '', password: '', confirmPassword: '' }
+    defaultValues: { 
+      email: location.state?.email || '', 
+      password: '', 
+      confirmPassword: '' 
+    }
   });
 
   const onSubmit = async (data) => {
-    const result = await resetPassword(data);
+    const result = await resetPassword({
+      ...data,
+      resetToken
+    });
     if (result.success) {
       navigate('/auth/login');
     }
@@ -31,7 +41,7 @@ export default function ResetPasswordPage() {
   return (
     <AuthLayout 
       title="Reset your password"
-      subtitle="Use strong and secure contents for your password"
+      subtitle="Create a new secure password to continue your eco-friendly journey"
     >
       {/* Error */}
       {error && (

@@ -13,15 +13,13 @@ export function Header() {
   const handleSearch = (e) => {
     e.preventDefault();
     console.log("Searching for:", searchQuery);
-    // TODO: Implement search functionality
+    // Implement search functionality
   };
 
   return (
     <nav className="flex items-center justify-between px-6 md:px-16 lg:px-28 py-4 bg-white">
       {/* Logo */}
-      <Link to="/" className="flex items-center">
-        <Logo size="default" showText={true} />
-      </Link>
+      <Logo size="default" showText={true} linkTo="/" />
 
       {/* Desktop Navigation - Centered */}
       <div className="hidden md:flex space-x-8 absolute left-1/2 transform -translate-x-1/2">

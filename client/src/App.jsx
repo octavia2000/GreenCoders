@@ -6,6 +6,8 @@ import RegisterPage from './app/(auth)/register/page';
 import ForgotPasswordPage from './app/(auth)/forgot-password/page';
 import ResetPasswordPage from './app/(auth)/reset-password/page';
 import EmailVerificationPage from './app/(auth)/email-verification/page';
+import NotFoundPage from './app/not-found';
+import { ToastProvider } from './components/providers/ToastProvider';
 
 function App() {
   return (
@@ -22,7 +24,11 @@ function App() {
           <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
           <Route path="/auth/email-verification" element={<EmailVerificationPage />} />
+          
+          {/* 404 Not Found */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        <ToastProvider />
       </div>
     </Router>
   );

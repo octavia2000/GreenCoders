@@ -29,14 +29,25 @@ export const PhoneInput = forwardRef(({
             value={dialCode}
             onChange={(e) => {
               const raw = e.target.value;
-              const digits = raw.replace(/\D/g, '').slice(0, 4);
-              const cleaned = digits ? `+${digits}` : '';
-              const next = cleaned ? `${cleaned} ${nationalDigits}` : nationalDigits;
+              // Allow + and digits only
+              const cleaned = raw.replace(/[^\d+]/g, '');
+              
+              // If it starts with +, keep it, otherwise add +
+              let formatted;
+              if (cleaned.startsWith('+')) {
+                formatted = cleaned.slice(0, 5); // Max 4 digits after +
+              } else if (cleaned) {
+                formatted = `+${cleaned.slice(0, 4)}`; // Max 4 digits
+              } else {
+                formatted = '';
+              }
+              
+              const next = formatted ? `${formatted} ${nationalDigits}` : nationalDigits;
               onChange?.(next.trim());
             }}
             placeholder="+234"
             className={cn(
-              'w-full h-10 sm:h-11 px-2 border-2 rounded-lg bg-white text-gray-900 text-sm sm:text-base font-medium outline-none focus:ring-2 focus:ring-eco-500 focus:border-eco-500 transition-all duration-200',
+              'w-full h-10 sm:h-11 px-2 border-2 rounded-lg bg-white text-gray-900 text-sm sm:text-base font-medium outline-none focus:ring-2 focus:ring-eco-500 focus:border-eco-500 transition-all duration-200 placeholder-gray-300',
               error ? 'border-red-500' : 'border-gray-300 hover:border-eco-500'
             )}
           />

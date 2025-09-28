@@ -53,7 +53,7 @@ export function FeaturedProducts() {
 
   const addToCart = (product) => {
     console.log('Added to cart:', product);
-    // TODO: Implement cart functionality
+    // Implement cart functionality
   };
 
   return (

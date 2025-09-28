@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { AuthLayout } from '../../../components/ui/AuthLayout';
 import { FormField } from '../../../components/ui/FormField';
 import { Input } from '../../../components/ui/Input';
@@ -10,7 +11,21 @@ import { useAuthActions } from '../../../actions/auth.action';
 
 export default function ForgotPasswordPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { forgotPassword, isLoading, error } = useAuthActions();
+  const [submittedEmail, setSubmittedEmail] = useState('');
+  const { forgotPassword, isLoading, error, clearError } = useAuthActions();
+
+  // Clear any previous errors when component mounts
+  useEffect(() => {
+    clearError();
+  }, [clearError]);
+
+  const maskEmail = (email) => {
+    if (!email) return '';
+    const [username, domain] = email.split('@');
+    if (username.length <= 3) return email;
+    const maskedUsername = username.slice(0, 3) + '*'.repeat(username.length - 3);
+    return `${maskedUsername}@${domain}`;
+  };
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
@@ -19,14 +34,17 @@ export default function ForgotPasswordPage() {
 
   const onSubmit = async ({ email }) => {
     const result = await forgotPassword(email);
-    if (result.success) setIsSubmitted(true);
+    if (result.success) {
+      setSubmittedEmail(email);
+      setIsSubmitted(true);
+    }
   };
 
   if (isSubmitted) {
     return (
       <AuthLayout 
         title="Email Sent"
-        subtitle="We've sent a password reset link to your email address."
+        subtitle="Don't worry! We'll help you regain access to your GreenCoders account"
       >
         <div className="text-center">
           <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
@@ -35,6 +53,9 @@ export default function ForgotPasswordPage() {
             </svg>
           </div>
           <p className="mt-4 text-sm text-gray-500">
+            We have sent a password reset link to {maskEmail(submittedEmail)}
+          </p>
+          <p className="mt-2 text-sm text-gray-500">
             Please check your email and follow the instructions to reset your password.
           </p>
         </div>
@@ -55,7 +76,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthLayout 
       title="Forgot Password"
-      subtitle="Please enter your email address to request a password reset"
+      subtitle="Enter your email and we'll send you a secure link to reset your password"
     >
       {/* Error */}
       {error && (

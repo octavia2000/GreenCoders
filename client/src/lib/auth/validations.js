@@ -18,6 +18,12 @@ export const registerSchema = z.object({
     .string()
     .min(1, 'Email is required')
     .email('Invalid email address'),
+  phoneNumber: z
+    .string()
+    .min(1, 'Phone number is required')
+    .regex(/^\+234\d{10}$/, 'Nigerian phone number must be in format +234XXXXXXXXXX (e.g., +2348158667115)')
+    .min(14, 'Phone number must be at least 14 characters (+234XXXXXXXXXX)')
+    .max(14, 'Phone number must be exactly 14 characters (+234XXXXXXXXXX)'),
   password: z
     .string()
     .min(1, 'Password is required')

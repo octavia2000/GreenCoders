@@ -8,10 +8,11 @@ import { Input } from '../../../components/ui/Input';
 import { PasswordInput } from '../../../components/ui/PasswordInput';
 import { loginSchema } from '../../../lib/auth/validations';
 import { useAuthActions } from '../../../actions/auth.action';
+import { googleOAuth } from '../../../lib/utils/google-oauth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, isLoading, error, clearError } = useAuthActions();
+  const { login, googleAuth, isLoading, error, clearError } = useAuthActions();
   
   const {
     register,
@@ -26,13 +27,35 @@ export default function LoginPage() {
     }
   });
 
+  const handleGoogleSignIn = async () => {
+    try {
+      clearError();
+      const idToken = await googleOAuth.getCredential();
+      const result = await googleAuth(idToken);
+      
+      if (result.success) {
+        navigate('/explore');
+      }
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+    }
+  };
+
   const onSubmit = async (data) => {
     clearError(); // Clear any previous errors
     const result = await login(data);
     
     if (result.success) {
-      // Redirect to dashboard or home page
-      navigate('/');
+      // Redirect to explore page
+      navigate('/explore');
+    } else if (result.requiresPhoneVerification) {
+      // Redirect to phone verification page
+      navigate('/auth/email-verification', { 
+        state: { 
+          phoneNumber: result.phoneNumber,
+          autoSendOtp: true 
+        } 
+      });
     }
     // Error handling is done by Zustand store
   };
@@ -40,7 +63,7 @@ export default function LoginPage() {
   return (
     <AuthLayout 
       title="Login to your account"
-      subtitle="Use strong and secure contents for your password"
+      subtitle="Welcome back! Continue your journey towards sustainable living"
     >
       {/* Error Message */}
       {error && (
@@ -80,22 +103,12 @@ export default function LoginPage() {
           error={errors.password?.message}
           required
         >
-          <div className="relative">
-            <Input
-              id="password"
-              type="password"
-              {...register('password')}
-              placeholder="Password"
-              error={errors.password}
-              className="pl-3 pr-10"
-            />
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </div>
-          </div>
+          <PasswordInput
+            id="password"
+            {...register('password')}
+            placeholder="Password"
+            error={errors.password}
+          />
         </FormField>
 
         {/* Remember Me & Forgot Password */}
@@ -142,6 +155,7 @@ export default function LoginPage() {
         {/* Google Login */}
         <button
           type="button"
+          onClick={handleGoogleSignIn}
           className="w-full border border-gray-300 text-gray-700 hover:bg-gray-50 py-3 px-4 rounded-md font-medium font-poppins text-base flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200"
         >
           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -150,7 +164,7 @@ export default function LoginPage() {
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
           </svg>
-          Login with Google
+          Continue with Google
         </button>
       </form>
 
@@ -158,7 +172,7 @@ export default function LoginPage() {
       <div className="text-center mt-4 sm:mt-6">
         <p className="text-sm text-gray-600">
           Don't have an account?{' '}
-          <Link to="/auth/register" className="text-eco-600 hover:text-eco-500 font-medium">
+          <Link to="/auth/register" className="text-green-600 hover:text-green-500 font-medium">
             Sign up
           </Link>
         </p>
