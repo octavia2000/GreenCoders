@@ -5,7 +5,8 @@ export const FormField = forwardRef(({
   error, 
   children, 
   className = '',
-  required = false 
+  required = false,
+  compact = false 
 }, ref) => {
   return (
     <div className={className}>
@@ -17,7 +18,7 @@ export const FormField = forwardRef(({
       )}
       {children}
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
+        <p className={`text-sm text-red-600 ${compact ? 'mt-0.5' : 'mt-1'}`}>{error}</p>
       )}
     </div>
   );

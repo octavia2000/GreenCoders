@@ -92,9 +92,8 @@ export class AuthService {
       phoneNumber: normalizedPhone,
     });
     const user = await this.userRepository.save(newUser);
-    // Generate OTP and send welcome email
-    await this.generateOtp(user.phoneNumber);
-    await this.sendWelcomeEmail(user);
+    const otpResult = await this.generateOtp(user.phoneNumber);
+    console.log(SYS_MSG.OTP_SENT_SUCCESSFULLY);
 
     return {
       statusCode: HttpStatus.CREATED,
@@ -128,12 +127,25 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST);
     }
+    
+    // Prevent Google users from logging in with email/password
+    if (user.authMethod === 'google') {
+      throw new BadRequestException(SYS_MSG.GOOGLE_AUTH_REQUIRED);
+    }
+
+    
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new BadRequestException(SYS_MSG.INVALID_PASSWORD);
     }
-    if (!user.isNumberVerified) {
-      throw new BadRequestException(SYS_MSG.PHONE_NOT_VERIFIED);
+    if (!user.isNumberVerified && user.authMethod === 'email') {
+      // Only require phone verification for email-based users
+      // Google users don't need phone verification
+      await this.generateOtp(user.phoneNumber);
+      throw new BadRequestException({
+        message: SYS_MSG.PHONE_NOT_VERIFIED,
+        phoneNumber: user.phoneNumber
+      });
     }
     return {
       statusCode: HttpStatus.OK,
@@ -144,6 +156,7 @@ export class AuthService {
           username: user.username,
           email: user.email,
           isNumberVerified: user.isNumberVerified,
+          authMethod: user.authMethod,
         },
       },
     };
@@ -235,10 +248,14 @@ export class AuthService {
   async generateOtp(phoneNumber: string): Promise<BaseResponse<OtpResponse>> {
     // Normalize phone number before lookup
     const normalizedPhone = this.phoneNormalizer.normalizePhoneNumber(phoneNumber);
+    
     const user = await this.userRepository.findOne({ 
       where: { phoneNumber: normalizedPhone } 
     });
-    if (!user) throw new NotFoundException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST);
+    
+    if (!user) {
+      throw new NotFoundException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST);
+    }
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5min
     user.phoneOtp = otp;
@@ -275,6 +292,15 @@ export class AuthService {
     user.phoneOtp = null;
     user.otpExpiresAt = null;
     await this.userRepository.save(user);
+    
+    // Send welcome email after successful phone verification
+    try {
+      console.log(SYS_MSG.WELCOME_EMAIL_SENDING, user.email);
+      await this.emailService.sendOnboardingEmail(user.email, user.username);
+      console.log(SYS_MSG.WELCOME_EMAIL_SENT);
+    } catch (error) {
+      console.log(SYS_MSG.WELCOME_EMAIL_FAILED, error.message);
+    }
     
     return {
       statusCode: HttpStatus.OK,
@@ -412,6 +438,7 @@ export class AuthService {
             username: user.username,
             email: user.email,
             isNumberVerified: user.isNumberVerified,
+            authMethod: user.authMethod,
           },
         },
       };
@@ -442,18 +469,32 @@ export class AuthService {
       const baseUsername = email.split('@')[0];
       const finalUsername = await this.generateUniqueUsername(baseUsername);
 
+      // Generate a secure password for Google users
+      const googlePassword = this.generateGooglePassword(email);
+
       // Create user first
       user = this.userRepository.create({
         email,
         username: finalUsername,
-        password: '', 
-        phoneNumber: '',
-        isNumberVerified: true,
+        password: googlePassword, 
+        phoneNumber: '', // Optional for Google users
+        isNumberVerified: false, // Google users don't verify phone
+        authMethod: 'google',
       });
       await this.userRepository.save(user);
     }
 
     return user;
+  }
+
+  /**
+   * Generate a secure password for Google users
+   * Uses email + random salt + timestamp for uniqueness
+   */
+  private generateGooglePassword(email: string): string {
+    const timestamp = Date.now().toString();
+    const randomSalt = Math.random().toString(36).substring(2, 15);
+    return `${email}:google:${timestamp}:${randomSalt}`;
   }
 
   /* 

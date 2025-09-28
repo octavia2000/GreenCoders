@@ -36,8 +36,10 @@ export class UserEntity extends BaseEntity {
   @Column({ nullable: true })
   resetPasswordExpiresAt: Date;
 
+  @Column({ default: 'email' })
+  authMethod: string; // 'email' | 'google'
+
   @BeforeInsert()
-  @BeforeUpdate()
   async hashPassword() {
     if (this.password && this.password.length > 0) {
       const salt = await bcrypt.genSalt(10);

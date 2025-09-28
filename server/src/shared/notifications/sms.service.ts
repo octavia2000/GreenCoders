@@ -38,6 +38,7 @@ export class SmsService {
     }
 
     const champNumber = this.formatPhoneNumber(phone);
+    console.log('📱 SMS Service - Sending OTP:', otp, 'to:', champNumber);
     const message = `GreenCoders
 Your verification code is ${otp}
 Verify Now
@@ -74,7 +75,7 @@ This code will expire in 5 minutes.`;
 
     } catch (error) {
       this.logger.error(`Failed to send OTP to ${champNumber}:`, error);
-      throw new BadRequestException(SYS_MSG.OTP_SENT_SUCCESSFULLY);
+      throw new BadRequestException(SYS_MSG.OTP_SEND_FAILED);
     }
   }
 
