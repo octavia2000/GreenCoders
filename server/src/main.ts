@@ -5,20 +5,15 @@ import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/http-exception.filter';
 import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
 
-let cachedApp: any;
-
-async function createApp() {
-  if (cachedApp) {
-    return cachedApp;
-  }
-
-  const expressApp = express();
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
   
   const configService = app.get(ConfigService);
+  const port = configService.get('app.port') || 3000;
+
+  // Set global prefix
+  app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -49,27 +44,9 @@ async function createApp() {
     })
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/v1/docs', app, document);
+  SwaggerModule.setup('/docs', app, document);
 
-  await app.init();
-  cachedApp = expressApp;
-  return expressApp;
+  await app.listen(port);
+  console.log(`Application is running on port:${port}`);
 }
-
-// For Vercel serverless functions
-export default async function handler(req: any, res: any) {
-  const app = await createApp();
-  return app(req, res);
-}
-
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  async function bootstrap() {
-    const app = await createApp();
-    const port = process.env.PORT || 3000;
-    app.listen(port, () => {
-      console.log(`Application is running on port:${port}`);
-    });
-  }
-  bootstrap();
-}
+bootstrap();
