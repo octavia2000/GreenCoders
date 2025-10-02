@@ -12,6 +12,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro 256GB Gold",
     price: 1347,
     image: iphone1,
+    quantity: 1,
   },
   {
     id: 2,
@@ -19,6 +20,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro Silver",
     price: 549,
     image: iphone2,
+    quantity: 1,
   },
   {
     id: 3,
@@ -26,6 +28,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro Max",
     price: 329,
     image: iphone3,
+    quantity: 1,
   },
   {
     id: 4,
@@ -33,6 +36,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro 1TB",
     price: 1499,
     image: iphone4,
+    quantity: 1,
   },
   {
     id: 5,
@@ -40,6 +44,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro 256GB Gold",
     price: 1347,
     image: iphone1,
+    quantity: 1,
   },
   {
     id: 6,
@@ -47,6 +52,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro Silver",
     price: 549,
     image: iphone2,
+    quantity: 1,
   },
   {
     id: 7,
@@ -54,6 +60,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro Max",
     price: 329,
     image: iphone3,
+    quantity: 1,
   },
   {
     id: 8,
@@ -61,6 +68,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro 1TB",
     price: 1499,
     image: iphone4,
+    quantity: 1,
   },
   {
     id: 9,
@@ -68,6 +76,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro 256GB Gold",
     price: 1347,
     image: iphone1,
+    quantity: 1,
   },
   {
     id: 10,
@@ -75,6 +84,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro Silver",
     price: 549,
     image: iphone2,
+    quantity: 1,
   },
   {
     id: 11,
@@ -82,6 +92,7 @@ export const productsData = [
     name: "Apple iPhone 14 Pro Max",
     price: 329,
     image: iphone3,
+    quantity: 1,
   },
   {
     id: 12,
@@ -89,5 +100,6 @@ export const productsData = [
     name: "Apple iPhone 14 Pro 1TB",
     price: 1499,
     image: iphone4,
+    quantity: 1,
   },
 ];
