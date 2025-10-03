@@ -21,9 +21,12 @@ export const registerSchema = z.object({
   phoneNumber: z
     .string()
     .min(1, 'Phone number is required')
-    .regex(/^\+234\d{10}$/, 'Nigerian phone number must be in format +234XXXXXXXXXX (e.g., +2348158667115)')
-    .min(14, 'Phone number must be at least 14 characters (+234XXXXXXXXXX)')
-    .max(14, 'Phone number must be exactly 14 characters (+234XXXXXXXXXX)'),
+    .regex(/^\+234[\s\-]?\d{3}[\s\-]?\d{3}[\s\-]?\d{4}$/, 'Nigerian phone number must be in format +234 XXX XXX XXXX (e.g., +234 815 866 7115)')
+    .refine((val) => {
+      // Remove spaces and hyphens to check if it's a valid Nigerian number
+      const cleaned = val.replace(/[\s\-]/g, '');
+      return cleaned === '+234' + cleaned.slice(4) && cleaned.length === 14;
+    }, 'Invalid Nigerian phone number format'),
   password: z
     .string()
     .min(1, 'Password is required')

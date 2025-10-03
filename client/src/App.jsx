@@ -10,6 +10,7 @@ import Layout from './Layout';
 import { ProductsPage } from './components/Products';
 import NotFoundPage from './app/not-found';
 import { ToastProvider } from './components/providers/ToastProvider';
+import { AuthRoute, RegistrationFlowRoute } from './components/auth/ProtectedRoute';
 
 function App() {
   return (
@@ -23,12 +24,32 @@ function App() {
             <Route path="/products" element={<ProductsPage />} />
           </Route>
           
-          {/* Auth routes */}
-          <Route path="/auth/login" element={<LoginPage />} />
-          <Route path="/auth/register" element={<RegisterPage />} />
-          <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/auth/email-verification" element={<EmailVerificationPage />} />
+          {/* Auth routes - only accessible when NOT authenticated */}
+          <Route path="/auth/login" element={
+            <AuthRoute>
+              <LoginPage />
+            </AuthRoute>
+          } />
+          <Route path="/auth/register" element={
+            <AuthRoute>
+              <RegisterPage />
+            </AuthRoute>
+          } />
+          <Route path="/auth/forgot-password" element={
+            <AuthRoute>
+              <ForgotPasswordPage />
+            </AuthRoute>
+          } />
+          <Route path="/auth/reset-password" element={
+            <AuthRoute>
+              <ResetPasswordPage />
+            </AuthRoute>
+          } />
+          <Route path="/auth/email-verification" element={
+            <RegistrationFlowRoute>
+              <EmailVerificationPage />
+            </RegistrationFlowRoute>
+          } />
           
           {/* 404 Not Found */}
           <Route path="*" element={<NotFoundPage />} />
