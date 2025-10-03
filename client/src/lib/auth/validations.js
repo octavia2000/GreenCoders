@@ -165,7 +165,7 @@ export const getPasswordStrength = (password) => {
 // payment validation
 
 export const paymentSchema = z.object({
-  method: z.enum(["paypal", "bank", "card", "google", "cash"]),
+  method: z.enum(["cash", "paypal", "bank", "card", "google"]),
   cardNumber: z.string().optional(),
   nameOnCard: z.string().optional(),
   expiry: z.string().optional(),
