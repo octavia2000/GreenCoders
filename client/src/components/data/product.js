@@ -95,4 +95,4 @@ export const productsData = [
     image: "/images(products)/headset.svg",
     quantity: 1,
   },
-]
+];
