@@ -10,7 +10,8 @@ import Layout from "./Layout";
 import { ProductsPage } from "./app/Products";
 import NotFoundPage from "./app/not-found";
 import { ToastProvider } from "./components/providers/ToastProvider";
-import Cart from "./app/Cart";
+import Cart from "./app/cart(payment)/Cart";
+import Payment from "./app/cart(payment)/Payment";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
             <Route path="/explore" element={<ExplorePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/payment" element={<Payment />} />
           </Route>
 
           {/* Auth routes */}

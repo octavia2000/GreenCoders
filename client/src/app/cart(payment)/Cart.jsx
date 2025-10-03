@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { productsData } from "../components/data/product";
+import { productsData } from "../../components/data/product";
+import OrderSummary from "./OrderSummary";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState(productsData);
@@ -37,7 +38,7 @@ const Cart = () => {
   return (
     <div className="min-h-screen p-6 flex flex-col lg:flex-row gap-6">
       <div className="flex-1 md:max-w-[37rem] md:mx-auto">
-        <h1 className="text-xl font-semibold mb-4">My Cart</h1>
+        <h1 className="text-xl font-semibold mb-10">My Cart</h1>
         <div className="space-y-6">
           {cartItems.map((item) => (
             <div
@@ -90,21 +91,7 @@ const Cart = () => {
         </div>
       </div>
 
-      {/* Order Summary */}
-      <div className="w-full md:w-[40rem] lg:w-80 p-4 border rounded-lg h-fit mx-auto">
-        <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
-        <div className="flex justify-between mb-2">
-          <span>Total</span>
-          <span>${subtotal}</span>
-        </div>
-        <div className="flex justify-between mb-4 text-green-600">
-          <span>Discount</span>
-          <span>-${discount}</span>
-        </div>
-        <button className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold">
-          Checkout (${total})
-        </button>
-      </div>
+      <OrderSummary subtotal={subtotal} discount={discount} total={total} />
     </div>
   );
 };
