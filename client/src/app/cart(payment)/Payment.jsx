@@ -7,7 +7,7 @@ import { paymentSchema } from "@/lib/auth/validations";
 export default function PaymentForm() {
   const { register, handleSubmit, watch } = useForm({
     resolver: zodResolver(paymentSchema),
-    defaultValues: { method: "credit" },
+    defaultValues: { method: "card" },
   });
 
   const method = watch("method");
@@ -40,13 +40,13 @@ export default function PaymentForm() {
         <label className="block border rounded-lg p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <input type="radio" value="credit" {...register("method")} />
+              <input type="radio" value="card" {...register("method")} />
               <span>Credit Card</span>
             </div>
             <img src="/bank-icon.svg" alt="Credit Card" className="w-6 h-6" />
           </div>
 
-          {method === "credit" && (
+          {method === "card" && (
             <div className="mt-3 space-y-3">
               <input
                 type="text"
