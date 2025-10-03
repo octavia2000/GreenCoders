@@ -1,27 +1,24 @@
 import { Link } from "react-router-dom";
 import { Logo } from "../ui/Logo";
-import twitterIcon from "../../assets/images/twitter.svg";
-import facebookIcon from "../../assets/images/facebook.svg";
-import tiktokIcon from "../../assets/images/tiktok.svg";
-
 export function Footer() {
   return (
     <footer className="bg-gray-100 py-[5rem]">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 text-sm text-gray-700 px-[7rem]">
         <div className="flex flex-col justify-between">
-          <p className="max-w-xs">
+          <img src='/company-logo.svg' alt="company-logo" className="w-[10rem] mb-[-4rem]" />
+          <span className="max-w-xs">
             We are a trusted e-commerce website which supports eco-friendly
             products and services
-          </p>
+          </span>
           <div className="flex space-x-4 mt-4">
             <Link to="/" className="hover:opacity-70">
-              <img src={twitterIcon} alt="Twitter" className="w-5 h-5" />
+              <img src='/images(socials)/Twitter.svg' alt="Twitter" className="w-5 h-5" />
             </Link>
             <Link to="/" className="hover:opacity-70">
-              <img src={facebookIcon} alt="Facebook" className="w-5 h-5" />
+              <img src='/images(socials)/Facebook.svg' alt="Facebook" className="w-5 h-5" />
             </Link>
             <Link to="/" className="hover:opacity-70">
-              <img src={tiktokIcon} alt="TikTok" className="w-5 h-5" />
+              <img src='/images(socials)/Tiktok.svg' alt="TikTok" className="w-5 h-5" />
             </Link>
           </div>
         </div>
