@@ -10,7 +10,6 @@ export const loginSchema = z.object({
 });
 
 // Register validation schema
-<<<<<<< HEAD
 export const registerSchema = z.object({
   email: z
     .string()
@@ -36,40 +35,8 @@ export const registerSchema = z.object({
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   referralCode: z.string().optional(),
   agreeToTerms: z.boolean().refine(val => val === true, {
-    message: 'You must agree to the terms and conditions'
-=======
-export const registerSchema = z
-  .object({
-    email: z
-      .string()
-      .min(1, "Email is required")
-      .email("Invalid email address"),
-    phoneNumber: z
-      .string()
-      .min(1, "Phone number is required")
-      .regex(
-        /^\+234\d{10}$/,
-        "Nigerian phone number must be in format +234XXXXXXXXXX (e.g., +2348158667115)"
-      )
-      .min(14, "Phone number must be at least 14 characters (+234XXXXXXXXXX)")
-      .max(14, "Phone number must be exactly 14 characters (+234XXXXXXXXXX)"),
-    password: z
-      .string()
-      .min(1, "Password is required")
-      .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number")
-      .regex(
-        /[^A-Za-z0-9]/,
-        "Password must contain at least one special character"
-      ),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
-    referralCode: z.string().optional(),
-    agreeToTerms: z.boolean().refine((val) => val === true, {
-      message: "You must agree to the terms and conditions",
+    message: 'You must agree to the terms and conditionss',
     }),
->>>>>>> ac9cda2adfc0d43c2e20bf8c896b020d67a5f4f5
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
