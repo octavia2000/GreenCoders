@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom';
+<<<<<<< HEAD
 import logo from '../../assets/logo.png';
+=======
+>>>>>>> upstream/main
 
 export function Logo({ 
   size = 'default', 
@@ -24,7 +27,11 @@ export function Logo({
   return (
     <Link to={linkTo} className={`flex items-center space-x-2 ${className}`}>
       <img 
+<<<<<<< HEAD
         src={logo} 
+=======
+        src='/logo.png'
+>>>>>>> upstream/main
         alt="GreenCoders Logo" 
         className={`${sizeClasses[size]} w-auto`} 
       />

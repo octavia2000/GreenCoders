@@ -27,9 +27,22 @@ export const useAuthStore = create(
           if (result.success) {
             set({ 
               user: result.data.user, 
+<<<<<<< HEAD
               isLoading: false, 
               error: null 
             });
+=======
+              token: result.data.token,
+              isLoading: false, 
+              error: null 
+            });
+            
+            // Store token in localStorage for persistence
+            if (result.data.token) {
+              localStorage.setItem('greencoders_token', result.data.token);
+            }
+            
+>>>>>>> upstream/main
             toast.success('Welcome back! You\'re now logged in.');
             return { success: true, user: result.data.user };
           } else {

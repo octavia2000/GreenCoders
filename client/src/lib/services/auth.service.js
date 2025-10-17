@@ -6,6 +6,7 @@ class AuthService {
     console.log('Register data received:', userData);
     
     const phoneNumber = userData.phoneNumber || '';
+<<<<<<< HEAD
     // Extract country code and phone number properly
     const phoneMatch = phoneNumber.match(/^(\+\d{1,4})\s?(.+)$/);
     
@@ -18,6 +19,28 @@ class AuthService {
       // Fallback: clean all digits and add +234 if not present
       const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
       formattedPhoneNumber = cleanPhoneNumber.startsWith('234') ? `+${cleanPhoneNumber}` : `+234${cleanPhoneNumber}`;
+=======
+    console.log('Raw phone number:', phoneNumber);
+    
+    // Clean and format phone number properly
+    let formattedPhoneNumber;
+    
+    // Remove all spaces and non-digit characters except +
+    const cleaned = phoneNumber.replace(/\s/g, '').replace(/[^\d+]/g, '');
+    console.log('Cleaned phone number:', cleaned);
+    
+    if (cleaned.startsWith('+')) {
+      // Already has country code, just clean it
+      formattedPhoneNumber = cleaned;
+    } else {
+      // No country code, add +234 for Nigerian numbers
+      const digitsOnly = cleaned.replace(/\D/g, '');
+      if (digitsOnly.startsWith('234')) {
+        formattedPhoneNumber = `+${digitsOnly}`;
+      } else {
+        formattedPhoneNumber = `+234${digitsOnly}`;
+      }
+>>>>>>> upstream/main
     }
     
     console.log('Formatted phone number:', formattedPhoneNumber);
@@ -90,12 +113,26 @@ class AuthService {
     
     // Format phone number the same way as registration
     let formattedPhoneNumber;
+<<<<<<< HEAD
     if (phoneNumber.startsWith('+')) {
       formattedPhoneNumber = phoneNumber;
     } else {
       // Add +234 if not present
       const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
       formattedPhoneNumber = cleanPhoneNumber.startsWith('234') ? `+${cleanPhoneNumber}` : `+234${cleanPhoneNumber}`;
+=======
+    const cleaned = phoneNumber.replace(/\s/g, '').replace(/[^\d+]/g, '');
+    
+    if (cleaned.startsWith('+')) {
+      formattedPhoneNumber = cleaned;
+    } else {
+      const digitsOnly = cleaned.replace(/\D/g, '');
+      if (digitsOnly.startsWith('234')) {
+        formattedPhoneNumber = `+${digitsOnly}`;
+      } else {
+        formattedPhoneNumber = `+234${digitsOnly}`;
+      }
+>>>>>>> upstream/main
     }
     
     const requestData = {
@@ -124,12 +161,26 @@ class AuthService {
   async resendOtp(phoneNumber) {
     // Format phone number the same way as registration
     let formattedPhoneNumber;
+<<<<<<< HEAD
     if (phoneNumber.startsWith('+')) {
       formattedPhoneNumber = phoneNumber;
     } else {
       // Add +234 if not present
       const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
       formattedPhoneNumber = cleanPhoneNumber.startsWith('234') ? `+${cleanPhoneNumber}` : `+234${cleanPhoneNumber}`;
+=======
+    const cleaned = phoneNumber.replace(/\s/g, '').replace(/[^\d+]/g, '');
+    
+    if (cleaned.startsWith('+')) {
+      formattedPhoneNumber = cleaned;
+    } else {
+      const digitsOnly = cleaned.replace(/\D/g, '');
+      if (digitsOnly.startsWith('234')) {
+        formattedPhoneNumber = `+${digitsOnly}`;
+      } else {
+        formattedPhoneNumber = `+234${digitsOnly}`;
+      }
+>>>>>>> upstream/main
     }
     
     const response = await apiClient.post(API_ENDPOINTS.AUTH.RESEND_OTP, {

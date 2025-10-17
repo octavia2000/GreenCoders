@@ -79,7 +79,11 @@ export const PhoneInput = forwardRef(({
         </div>
       </div>
       {(error) && (
+<<<<<<< HEAD
         <p className="text-sm text-red-600">{error}</p>
+=======
+        <p className="text-sm text-red-600">{error.message || error}</p>
+>>>>>>> upstream/main
       )}
     </div>
   );

@@ -66,7 +66,11 @@ export default function RegisterPage() {
       const result = await googleAuth(idToken);
       
       if (result.success) {
+<<<<<<< HEAD
         const redirectPath = result.user?.role === 'admin' ? '/admin' : '/explore';
+=======
+        const redirectPath = result.user?.role === 'admin' ? '/admin' : '/products';
+>>>>>>> upstream/main
         navigate(redirectPath);
       } else {
         throw new Error(result.error || 'Google authentication failed');
@@ -83,7 +87,14 @@ export default function RegisterPage() {
     
     if (result.success) {
       navigate('/auth/email-verification', { 
+<<<<<<< HEAD
         state: { phoneNumber: data.phoneNumber } 
+=======
+        state: { 
+          phoneNumber: data.phoneNumber,
+          fromRegistration: true
+        } 
+>>>>>>> upstream/main
       });
     }
   };

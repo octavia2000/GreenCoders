@@ -29,3 +29,7 @@ export class VerifyOtpDto {
   })
   otp: string;
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/main

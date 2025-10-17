@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Link, useNavigate } from 'react-router-dom';
+=======
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+>>>>>>> upstream/main
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '../../../components/ui/button';
@@ -12,6 +16,10 @@ import { googleOAuth } from '../../../lib/utils/google-oauth';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+<<<<<<< HEAD
+=======
+  const location = useLocation();
+>>>>>>> upstream/main
   const { login, googleAuth, isLoading, error, clearError } = useAuthActions();
   
   const {
@@ -34,7 +42,13 @@ export default function LoginPage() {
       const result = await googleAuth(idToken);
       
       if (result.success) {
+<<<<<<< HEAD
         navigate('/explore');
+=======
+        // Redirect to intended page or products page
+        const from = location.state?.from?.pathname || '/products';
+        navigate(from, { replace: true });
+>>>>>>> upstream/main
       }
     } catch (error) {
       console.error('Google sign-in failed:', error);
@@ -46,8 +60,14 @@ export default function LoginPage() {
     const result = await login(data);
     
     if (result.success) {
+<<<<<<< HEAD
       // Redirect to explore page
       navigate('/explore');
+=======
+      // Redirect to intended page or products page
+      const from = location.state?.from?.pathname || '/products';
+      navigate(from, { replace: true });
+>>>>>>> upstream/main
     } else if (result.requiresPhoneVerification) {
       // Redirect to phone verification page
       navigate('/auth/email-verification', { 
