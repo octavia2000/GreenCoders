@@ -20,9 +20,9 @@ export class SmsService {
     this.baseUrl = this.configService.get<string>('SENDCHAMP_BASE_URL');
 
     if (!this.apiKey || !this.senderId) {
-      this.logger.warn('SendChamp credentials not found. Test SMS will be sent.');
+      this.logger.warn(SYS_MSG.SMS_CREDENTIALS_NOT_FOUND);
     } else {
-      this.logger.log('SendChamp SMS service initialized');
+      this.logger.log(SYS_MSG.SMS_SERVICE_INITIALIZED);
     }
   }
 
@@ -47,7 +47,7 @@ This code will expire in 5 minutes.`;
     // Test mode if credentials not available
     if (!this.apiKey || !this.senderId) {
       this.logger.log(`TEST SMS: Sending OTP ${otp} to ${champNumber}`);
-      return { success: true, message: 'Test SMS sent successfully' };
+      return { success: true, message: SYS_MSG.TEST_SMS_SENT };
     }
 
     try {
@@ -71,7 +71,7 @@ This code will expire in 5 minutes.`;
       );
 
       this.logger.log(`OTP sent successfully to ${champNumber}. Status: ${response.data.status}`);
-      return { success: true, message: 'OTP sent successfully' };
+      return { success: true, message: SYS_MSG.SMS_OTP_SENT };
 
     } catch (error) {
       this.logger.error(`Failed to send OTP to ${champNumber}:`, error);

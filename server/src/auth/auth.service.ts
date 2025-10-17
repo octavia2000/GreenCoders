@@ -8,29 +8,34 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
-import { randomBytes } from 'crypto';
+import { Request } from 'express';
 import * as bcrypt from 'bcrypt';
-
-import { UserEntity } from '../users/entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { LogUserDto } from './dto/login-user.dto';
+import { UserEntity } from '../customers/entities/user.entity';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { PasswordResetDto } from './dto/reset-password.dto';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { GoogleAuthPayloadDto } from './dto/google-auth.dto';
 import { EmailService } from '../shared/notifications/email.service';
 import { SmsService } from '../shared/notifications/sms.service';
-import { PhoneNormalizerService } from '../shared/phone-normalizer.service';
+import { PhoneNormalizerService } from '../helpers/phone-normalizer.service';
+import { AuthHelperService } from '../helpers/auth-helper.service';
 import * as SYS_MSG from '../helpers/SystemMessages';
 import {
   BaseResponse,
-  UserResponse,
   LoginResponse,
   RegisterResponse,
   OtpResponse,
   OtpVerificationResponse,
   PasswordResetResponse,
+  WelcomeEmailResponse,
   TokenValidationResponse,
-} from '../shared/types/user-response.types';
+  Role,
+  AuthUserResponse,
+  RequestResetPasswordResponse,
+} from './types/auth-response.types';
+import { UserResponse } from '../customers/types/user-response.types';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
 export class AuthService {
@@ -43,31 +48,23 @@ export class AuthService {
     private readonly emailService: EmailService,
     private readonly smsService: SmsService,
     private readonly phoneNormalizer: PhoneNormalizerService,
+    private readonly authHelper: AuthHelperService,
   ) {}
 
-  /* 
-  =======================================
-  Auth Header/Token Method
-  ========================================
-  */
-  extractTokenFromHeader(authHeader: string): string {
-    if (!authHeader) throw new BadRequestException(SYS_MSG.AUTH_HEADER_MISSING);
-    const token = authHeader.split(' ')[1];
-    if (!token) throw new BadRequestException(SYS_MSG.ACCESS_TOKEN_MISSING);
-    return token;
-  }
 
   /* 
   =======================================
   User Registration Method
   ========================================
   */
-  async register(createUserDto: CreateUserDto): Promise<BaseResponse<RegisterResponse>> {
-    const { email, password, phoneNumber } = createUserDto;
-    if (!email || !password || !phoneNumber) {
+  async register(registerDto: RegisterDto): Promise<BaseResponse<RegisterResponse>> {
+    const { email, password, phoneNumber, role } = registerDto;
+    
+    if (!email || !password || !phoneNumber || !role) {
       throw new BadRequestException(SYS_MSG.MISSING_FIELDS);
     }
     const normalizedPhone = this.phoneNormalizer.normalizePhoneNumber(phoneNumber);
+    // Check for existing user
     const existingUser = await this.userRepository.findOne({
       where: { email },
     });
@@ -80,20 +77,25 @@ export class AuthService {
     if (existingPhone) {
       throw new BadRequestException(SYS_MSG.PHONE_NUMBER_ALREADY_IN_USE);
     }
-    // Generate unique username from email prefix
-    const baseUsername = email.split('@')[0];
-    const finalUsername = await this.generateUniqueUsername(baseUsername);
+    // Generate username from email
+    const username = await this.authHelper.generateUsernameFromEmail(email);
 
-    // Create new user with normalized phone and generated username
+    // Create new user
     const newUser = this.userRepository.create({
       email,
       password,
-      username: finalUsername,
+      username,
       phoneNumber: normalizedPhone,
+      role: role as Role,
     });
     const user = await this.userRepository.save(newUser);
-    const otpResult = await this.generateOtp(user.phoneNumber);
-    console.log(SYS_MSG.OTP_SENT_SUCCESSFULLY);
+    // Generate and send OTP
+    try {
+      await this.generateOtp(user.phoneNumber);
+      this.logger.log(SYS_MSG.OTP_SENT_SUCCESSFULLY);
+    } catch (error) {
+      this.logger.error(SYS_MSG.OTP_SEND_FAILED, error);
+    }
 
     return {
       statusCode: HttpStatus.CREATED,
@@ -104,8 +106,11 @@ export class AuthService {
           username: user.username,
           email: user.email,
           isNumberVerified: user.isNumberVerified,
+          authMethod: user.authMethod || 'email',
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt?.toISOString(),
         },
-        message: SYS_MSG.OTP_SENT_SUCCESSFULLY,
       },
     };
   }
@@ -115,25 +120,18 @@ export class AuthService {
   User Login Method
   ========================================
   */
-  async login(logUserDto: LogUserDto): Promise<BaseResponse<LoginResponse>> {
-    const { email, password } = logUserDto;
-    const fieldsInDto = Object.keys(logUserDto);
+  async login(loginDto: LoginDto): Promise<BaseResponse<LoginResponse>> {
+    const { email, password } = loginDto;
+    const fieldsInDto = Object.keys(loginDto);
     if (fieldsInDto.length !== 2 || !email || !password) {
       throw new BadRequestException(SYS_MSG.INVALID_FIELDS);
     }
-    const user = await this.userRepository.findOne({
-      where: { email },
-    });
-    if (!user) {
-      throw new BadRequestException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST);
-    }
-    
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) throw new NotFoundException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST);
     // Prevent Google users from logging in with email/password
     if (user.authMethod === 'google') {
       throw new BadRequestException(SYS_MSG.GOOGLE_AUTH_REQUIRED);
     }
-
-    
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new BadRequestException(SYS_MSG.INVALID_PASSWORD);
@@ -157,6 +155,9 @@ export class AuthService {
           email: user.email,
           isNumberVerified: user.isNumberVerified,
           authMethod: user.authMethod,
+          role: user.role,
+          isActive: user.isActive,
+          createdAt: user.createdAt?.toISOString(),
         },
       },
     };
@@ -164,15 +165,103 @@ export class AuthService {
 
   /* 
   =======================================
-  Validate Token Method
+  Google Auth Method
   ========================================
   */
-  async validateTokenFromRequest(authHeader: string): Promise<BaseResponse<UserResponse>> {
-    if (!authHeader) {
-      throw new BadRequestException(SYS_MSG.AUTH_HEADER_MISSING);
+  async googleAuth(googleAuthPayload: GoogleAuthPayloadDto): Promise<BaseResponse<LoginResponse>> {
+    const idToken = googleAuthPayload.id_token;
+    if (!idToken) {
+      throw new BadRequestException(SYS_MSG.INVALID_CREDENTIALS);
     }
-    
-    const token = this.extractTokenFromHeader(authHeader);
+
+    try {
+      const request = await fetch(
+        `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${idToken}`,
+      );
+      const verifyTokenResponse = await request.json();
+
+      // Check if the response contains an error
+      if (verifyTokenResponse.error || verifyTokenResponse.error_description) {
+        throw new BadRequestException(SYS_MSG.INVALID_CREDENTIALS);
+      }
+
+      const { email: userEmail } = verifyTokenResponse;
+
+      // Validate that we have the required email
+      if (!userEmail) {
+        throw new BadRequestException(SYS_MSG.INVALID_CREDENTIALS);
+      }
+
+      const user = await this.validateOrCreateGoogleUser(userEmail);
+      return {
+        statusCode: HttpStatus.OK,
+        message: SYS_MSG.LOGIN_SUCCESSFUL,
+        data: {
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            isNumberVerified: user.isNumberVerified,
+            authMethod: user.authMethod,
+            role: user.role,
+          },
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(SYS_MSG.GOOGLE_AUTH_ERROR, error);
+      throw new BadRequestException(SYS_MSG.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /* 
+  =======================================
+  Validate or Create User for Google OAuth
+  ========================================
+  */
+  private async validateOrCreateGoogleUser(
+    email: string,
+  ): Promise<UserEntity> {
+    if (!email) {
+      throw new BadRequestException(SYS_MSG.INVALID_CREDENTIALS);
+    }
+    let user = await this.userRepository.findOne({
+      where: { email },
+    });
+    if (!user) {
+      const baseUsername = email.split('@')[0];
+      const finalUsername = await this.authHelper.generateUniqueUsername(baseUsername);
+
+      // Generate a secure password for Google users
+      const googlePassword = this.authHelper.generateGooglePassword(email);
+
+      // Create user first
+      user = this.userRepository.create({
+        email,
+        username: finalUsername,
+        password: googlePassword, 
+        phoneNumber: '', // Optional for Google users
+        isNumberVerified: false, // Google users don't verify phone
+        authMethod: 'google',
+        role: 'customer' as Role,
+      });
+      await this.userRepository.save(user);
+    }
+
+    return user;
+  }
+
+  /* 
+  =======================================
+  Token Validation Methods
+  ========================================
+  */
+  
+  /* Validates token from HTTP request cookies used by: /validate-token endpoint */
+  async validateTokenFromRequest(request: Request): Promise<BaseResponse<AuthUserResponse>> {
+    const token = this.authHelper.extractTokenFromCookie(request);
     const validationResult = await this.validateToken(token);
     
     if (!validationResult.isValid || !validationResult.user) {
@@ -182,10 +271,13 @@ export class AuthService {
     return {
       statusCode: HttpStatus.OK,
       message: SYS_MSG.TOKEN_VALIDATION_SUCCESSFUL,
-      data: validationResult.user,
+      data: validationResult.user as AuthUserResponse,
     };
   }
 
+  /* Core token validation logic (reusable) used by: validateTokenFromRequest(), JwtStrategy, and other services. 
+   Verifies JWT signature, decodes payload, and validates user exists.
+   */
   async validateToken(accessToken: string): Promise<TokenValidationResponse> {
     try {
       const decoded = await this.jwtService.verifyAsync(accessToken);
@@ -210,6 +302,8 @@ export class AuthService {
           email: user.email,
           username: user.username,
           isNumberVerified: user.isNumberVerified,
+          role: user.role,
+          isActive: user.isActive,
         },
       };
     } catch (error) {
@@ -220,11 +314,44 @@ export class AuthService {
 
   /* 
   =======================================
+  Validate User by ID (for JWT Strategy)
+  ========================================
+  */
+  async validateUserById(userId: string): Promise<TokenValidationResponse> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        this.logger.log(SYS_MSG.USER_NOT_FOUND_IN_DB);
+        return { isValid: false, user: null };
+      }
+
+      return {
+        isValid: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          isNumberVerified: user.isNumberVerified,
+          role: user.role,
+          isActive: user.isActive,
+        },
+      };
+    } catch (error) {
+      this.logger.error('Error validating user by ID:', error);
+      return { isValid: false, user: null };
+    }
+  }
+
+  /* 
+  =======================================
   Generate JWT Token Method
   ========================================
   */
   generateToken(user: UserResponse): string {
-    return this.jwtService.sign({ sub: user.id, email: user.email });
+    return this.authHelper.generateToken(user);
   }
 
   /* 
@@ -278,14 +405,14 @@ export class AuthService {
   OTP Verification Method
   ========================================
   */
-  async verifyOtp(phoneNumber: string, otp: string): Promise<BaseResponse<OtpVerificationResponse>> {
-    const normalizedPhone = this.phoneNormalizer.normalizePhoneNumber(phoneNumber);
+  async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<BaseResponse<OtpVerificationResponse>> {
+    const normalizedPhone = this.phoneNormalizer.normalizePhoneNumber(verifyOtpDto.phoneNumber);    
     const user = await this.userRepository.findOne({ 
       where: { phoneNumber: normalizedPhone }
     });
     if (!user) throw new NotFoundException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST);
 
-    if (user.phoneOtp !== otp || new Date() > user.otpExpiresAt) {
+    if (user.phoneOtp !== verifyOtpDto.otp || new Date() > user.otpExpiresAt) {
       throw new BadRequestException(SYS_MSG.OTP_INVALID_OR_EXPIRED);
     }
     user.isNumberVerified = true;
@@ -327,41 +454,42 @@ export class AuthService {
   Send Welcome Email Method
   ========================================
   */
-  async sendWelcomeEmail(user: UserEntity): Promise<BaseResponse<{ message: string }>> {
+  async sendWelcomeEmail(user: UserEntity): Promise<BaseResponse<WelcomeEmailResponse>> {
     await this.emailService.sendOnboardingEmail(user.email, user.username);
     
     return {
       statusCode: HttpStatus.OK,
       message: SYS_MSG.WELCOME_EMAIL_SENT_SUCCESSFULLY,
       data: {
-        message: SYS_MSG.WELCOME_EMAIL_SENT_SUCCESSFULLY,
+        message: `${SYS_MSG.WELCOME_EMAIL_SENT} : ${user.email}`,
       },
     };
-  }
+  } 
 
+  
   /* 
   =======================================
-  Password Recovery Method
+  Request Reset Password Method
   ========================================
   */
-  async requestResetPassword(forgetPasswordDto: ForgetPasswordDto): Promise<BaseResponse<PasswordResetResponse>> {
+  async requestResetPassword(forgetPasswordDto: ForgetPasswordDto): Promise<BaseResponse<RequestResetPasswordResponse>> {
     const user = await this.userRepository.findOne({ where: {email:forgetPasswordDto.email} });
-    if (!user) throw new NotFoundException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST);
-
-    const randomPassword = randomBytes(8).toString('hex')
-    user.resetPassword = randomPassword
-    user.resetPasswordExpiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    if (!user) throw new NotFoundException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST); 
+    // Generate 4-digit OTP for password reset
+    const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
+    user.resetPassword = otpCode;
+    user.resetPasswordExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
     await this.userRepository.save(user);
 
-    await this.emailService.sendRandomPassword(user.email, randomPassword);
+    // Send OTP via email instead of random password
+    await this.emailService.sendPasswordResetOtp(user.email, otpCode);
 
     return {
       statusCode: HttpStatus.OK,
-      message: SYS_MSG.FORGOT_PASSWORD_SUCCESS,
+      message: SYS_MSG.PASSWORD_RESET_TOKEN_SENT_SUCCESSFULLY,
       data: {
-        email: user.email,
-        message: SYS_MSG.PASSWORD_RESET_TOKEN_SENT,
+        message: `${SYS_MSG.PASSWORD_RESET_TOKEN_SENT} : ${user.email}`,
       },
     };
   }
@@ -371,20 +499,17 @@ export class AuthService {
   Password Reset Method
   ========================================
   */
-  async resetPassword(passwordResetDto: PasswordResetDto): Promise<BaseResponse<{ message: string }>> {
+  async resetPassword(passwordResetDto: PasswordResetDto): Promise<BaseResponse<PasswordResetResponse>> {
     const user = await this.userRepository.findOne({ where: { email: passwordResetDto.email } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST);
 
-    if (user.resetPassword !== passwordResetDto.randomPassword 
+    if (user.resetPassword !== passwordResetDto.otpCode 
         || !user.resetPasswordExpiresAt || new Date() > user.resetPasswordExpiresAt) {
-    throw new BadRequestException(SYS_MSG.INVALID_CREDENTIALS);
+      throw new BadRequestException(SYS_MSG.OTP_INVALID_OR_EXPIRED);
     }
 
+    // Set new password will be hashed by @BeforeUpdate hook in UserEntity
     user.password = passwordResetDto.newPassword;
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(passwordResetDto.newPassword, salt);
-
     user.resetPassword = null;
     user.resetPasswordExpiresAt = null;
 
@@ -394,123 +519,10 @@ export class AuthService {
       statusCode: HttpStatus.OK,
       message: SYS_MSG.PASSWORD_RESET_SUCCESSFUL,
       data: {
+        email: user.email,
         message: SYS_MSG.PASSWORD_RESET_SUCCESSFUL,
       },
     };
-  }
-
-  /* 
-  =======================================
-  Google Auth Method
-  ========================================
-  */
-  async googleAuth(googleAuthPayload: GoogleAuthPayloadDto): Promise<BaseResponse<LoginResponse>> {
-    const idToken = googleAuthPayload.id_token;
-    if (!idToken) {
-      throw new BadRequestException(SYS_MSG.INVALID_CREDENTIALS);
-    }
-
-    try {
-      const request = await fetch(
-        `https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${idToken}`,
-      );
-      const verifyTokenResponse = await request.json();
-
-      // Check if the response contains an error
-      if (verifyTokenResponse.error || verifyTokenResponse.error_description) {
-        throw new BadRequestException(SYS_MSG.INVALID_CREDENTIALS);
-      }
-
-      const { email: userEmail } = verifyTokenResponse;
-
-      // Validate that we have the required email
-      if (!userEmail) {
-        throw new BadRequestException(SYS_MSG.INVALID_CREDENTIALS);
-      }
-
-      const user = await this.validateOrCreateGoogleUser(userEmail);
-      return {
-        statusCode: HttpStatus.OK,
-        message: SYS_MSG.LOGIN_SUCCESSFUL,
-        data: {
-          user: {
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            isNumberVerified: user.isNumberVerified,
-            authMethod: user.authMethod,
-          },
-        },
-      };
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      this.logger.error(SYS_MSG.GOOGLE_AUTH_ERROR, error);
-      throw new BadRequestException(SYS_MSG.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  /* 
-  =======================================
-  Validate or Create User for Google OAuth
-  ========================================
-  */
-  private async validateOrCreateGoogleUser(
-    email: string,
-  ): Promise<UserEntity> {
-    if (!email) {
-      throw new BadRequestException(SYS_MSG.INVALID_CREDENTIALS);
-    }
-    let user = await this.userRepository.findOne({
-      where: { email },
-    });
-    if (!user) {
-      const baseUsername = email.split('@')[0];
-      const finalUsername = await this.generateUniqueUsername(baseUsername);
-
-      // Generate a secure password for Google users
-      const googlePassword = this.generateGooglePassword(email);
-
-      // Create user first
-      user = this.userRepository.create({
-        email,
-        username: finalUsername,
-        password: googlePassword, 
-        phoneNumber: '', // Optional for Google users
-        isNumberVerified: false, // Google users don't verify phone
-        authMethod: 'google',
-      });
-      await this.userRepository.save(user);
-    }
-
-    return user;
-  }
-
-  /**
-   * Generate a secure password for Google users
-   * Uses email + random salt + timestamp for uniqueness
-   */
-  private generateGooglePassword(email: string): string {
-    const timestamp = Date.now().toString();
-    const randomSalt = Math.random().toString(36).substring(2, 15);
-    return `${email}:google:${timestamp}:${randomSalt}`;
-  }
-
-  /* 
-  =======================================
-  Generate Unique Username
-  ========================================
-  */
-  private async generateUniqueUsername(baseUsername: string): Promise<string> {
-    let counter = 1;
-    let finalUsername = baseUsername;
-    
-    while (await this.userRepository.findOne({ where: { username: finalUsername } })) {
-      finalUsername = `${baseUsername}${counter}`;
-      counter++;
-    }
-    return finalUsername;
   }
 
 }

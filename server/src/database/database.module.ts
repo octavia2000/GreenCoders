@@ -1,6 +1,10 @@
 import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AdminSeedingService } from './admin-seeding.service';
+import { SeedingCommand } from './seeding.command';
+import { UserEntity } from '../customers/entities/user.entity';
+import { AdminProfileEntity } from '../admin/entities/admin-profile.entity';
 
 @Global()
 @Module({
@@ -12,8 +16,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    TypeOrmModule.forFeature([UserEntity, AdminProfileEntity]),
   ],
-  exports: [TypeOrmModule],
+  providers: [AdminSeedingService, SeedingCommand],
+  exports: [TypeOrmModule, AdminSeedingService, SeedingCommand],
 })
 export class DatabaseModule {}
 

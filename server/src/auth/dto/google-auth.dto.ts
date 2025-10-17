@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, Matches } from 'class-validator';
-import * as SYS_MSG from '../../helpers/SystemMessages';
 
 export class GoogleAuthPayloadDto {
   @ApiProperty({

@@ -1,6 +1,7 @@
-import { IsEmail, IsString, MinLength, IsNotEmpty, Matches } from 'class-validator';
+import { IsEmail, IsString, IsNotEmpty, Matches, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import * as SYS_MSG from '../../helpers/SystemMessages';
+
+import { IsStrongPassword } from '../validators/password.validator';
 
 export class PasswordResetDto {
   @ApiProperty({ 
@@ -13,29 +14,28 @@ export class PasswordResetDto {
   email: string;
 
   @ApiProperty({ 
-    description: 'Random password token received via email for verification',
-    example: 'abc123def456',
-    minLength: 8,
-    pattern: '^[a-zA-Z0-9]{8,}$'
+    description: 'OTP code received via email for verification',
+    example: '1234',
+    minLength: 4,
+    maxLength: 4,
+    pattern: '^[0-9]{4}$'
   })
-  @IsString({ message: 'Random password token must be a string' })
-  @IsNotEmpty({ message: 'Random password token is required' })
-  @Matches(/^[a-zA-Z0-9]{8,}$/, {
-    message: 'Random password token must be at least 8 alphanumeric characters'
+  @IsString({ message: 'OTP code must be a string' })
+  @IsNotEmpty({ message: 'OTP code is required' })
+  @Length(4, 4, { message: 'OTP code must be exactly 4 digits' })
+  @Matches(/^[0-9]{4}$/, {
+    message: 'OTP code must be exactly 4 digits'
   })
-  randomPassword: string;
+  otpCode: string;
 
   @ApiProperty({ 
     description: 'New password to replace the current password',
-    example: 'newpassword123',
-    minLength: 6,
-    pattern: '^.{6,}$'
+    example: 'NewSecurePass123!',
+    minLength: 8,
+    pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};\':"\\\\|,.<>\\/?]).{8,}$'
   })
   @IsString({ message: 'New password must be a string' })
-  @MinLength(6, { message: 'New password must be at least 6 characters long' })
   @IsNotEmpty({ message: 'New password is required' })
-  @Matches(/^.{6,}$/, {
-    message: 'New password must be at least 6 characters long'
-  })
+  @IsStrongPassword()
   newPassword: string;
 }

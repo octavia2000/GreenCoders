@@ -14,29 +14,31 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LogUserDto } from './dto/login-user.dto';
-import { CreateUserDto } from './dto/create-user.dto';
+import { AuthHelperService } from '../helpers/auth-helper.service';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { PasswordResetDto } from './dto/reset-password.dto';
 import { ForgetPasswordDto } from './dto/forget-password.dto';
 import { GoogleAuthPayloadDto } from './dto/google-auth.dto';
 import { ResendOtpDto } from './dto/resend-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
-import * as SYS_MSG from '../helpers/SystemMessages';
-import { authConfig } from '../config/auth.config';
 
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly authHelper: AuthHelperService,
+  ) { }
 
   /** API Endpoint for User Registration */
   @Post('register')
   @HttpCode(201)
-  @ApiOperation({ summary: 'Register a new user' })
+  @ApiOperation({ summary: 'Register a new user account (Customer, Vendor, or Admin)' })
   @ApiResponse({ status: 201, description: 'User registered successfully and 4-digit OTP sent to phone' })
-  @ApiResponse({ status: 400, description: 'Invalid input or user already exists' })
-  async signup(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  @ApiResponse({ status: 400, description: 'Invalid input, user already exists, or invalid access code' })
+  async register(@Body() registerDto: RegisterDto) {
+    return this.authService.register(registerDto);
   }
 
   /** API Endpoint for User Login */
@@ -46,12 +48,10 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User logged in successfully' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @ApiResponse({ status: 400, description: 'Phone number not verified' })
-  async login(@Body() logUserDto: LogUserDto, @Res({ passthrough: true }) res: Response) {
+  async login(@Body() logUserDto: LoginDto, @Res({ passthrough: true }) res: Response) {
     const response = await this.authService.login(logUserDto);
-
-    // Generate token and set cookie (since service doesn't return token in response)
     const token = this.authService.generateToken(response.data.user);
-    this.setAuthCookie(res, token);
+    this.authHelper.setAuthCookie(res, token);
 
     return response;
   }
@@ -65,10 +65,8 @@ export class AuthController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async googleAuth(@Body() body: GoogleAuthPayloadDto, @Res({ passthrough: true }) res: Response) {
     const response = await this.authService.googleAuth(body);
-
-    // Generate token and set cookie (since service doesn't return token in response)
     const token = this.authService.generateToken(response.data.user);
-    this.setAuthCookie(res, token);
+    this.authHelper.setAuthCookie(res, token);
 
     return response;
   }
@@ -79,7 +77,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Log out a user' })
   @ApiResponse({ status: 200, description: 'User successfully logged out' })
   async logout(@Res({ passthrough: true }) res: Response) {
-    this.clearAuthCookie(res);
+    this.authHelper.clearAuthCookie(res);
     return this.authService.logout();
   }
 
@@ -90,16 +88,16 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'OTP verified successfully' })
   @ApiResponse({ status: 400, description: 'Invalid OTP or expired OTP' })
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
-    return this.authService.verifyOtp(verifyOtpDto.phoneNumber, verifyOtpDto.otp);
+    return this.authService.verifyOtp(verifyOtpDto);
   }
 
   /** API Endpoint for Resending OTP */
   @Post('resend-otp')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Resend OTP to phone number'})
-  @ApiResponse({ status: 200, description: 'OTP sent successfully to phone number'})
-  @ApiResponse({ status: 400, description: 'Invalid phone number format or missing phone number'})
-  @ApiResponse({ status: 404, description: 'User account not found for the provided phone number'})
+  @ApiOperation({ summary: 'Resend OTP to phone number' })
+  @ApiResponse({ status: 200, description: 'OTP sent successfully to phone number' })
+  @ApiResponse({ status: 400, description: 'Invalid phone number format or missing phone number' })
+  @ApiResponse({ status: 404, description: 'User account not found for the provided phone number' })
   async resendOtp(@Body() resendOtpDto: ResendOtpDto) {
     return this.authService.resendOtp(resendOtpDto.phoneNumber);
   }
@@ -127,20 +125,12 @@ export class AuthController {
   /** API Endpoint to validate a token */
   @Get('validate-token')
   @HttpCode(200)
-  @ApiOperation({ summary: 'Validate access token from Authorization header' })
+  @ApiOperation({ summary: 'Validate access token from cookie' })
   @ApiResponse({ status: 200, description: 'Token validated successfully' })
   @ApiResponse({ status: 401, description: 'Invalid or expired token' })
-  @ApiResponse({ status: 400, description: 'Authorization header missing' })
+  @ApiResponse({ status: 400, description: 'Authentication token not found' })
   async validateToken(@Req() request: Request) {
-    const authHeader = request.headers['authorization'];
-    return this.authService.validateTokenFromRequest(authHeader);
+    return this.authService.validateTokenFromRequest(request);
   }
 
-  private setAuthCookie(res: Response, token: string) {
-    res.cookie(authConfig.cookie.name, token, authConfig.cookie.options);
-  }
-
-  private clearAuthCookie(res: Response) {
-    res.clearCookie(authConfig.cookie.name, authConfig.cookie.options);
-  }
 }
