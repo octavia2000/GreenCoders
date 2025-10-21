@@ -7,7 +7,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { IsStrongPasswordConstraint } from './validators/password.validator';
-import { UserEntity } from '../customers/entities/user.entity';
+import { UserEntity } from './user/entities.ts/entities/user.entity';
 import { CustomerProfileEntity } from '../customers/entities/customer-profile.entity';
 import { VendorProfileEntity } from '../vendors/entities/vendor-profile.entity';
 import { AdminProfileEntity } from '../admin/entities/admin-profile.entity';

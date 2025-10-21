@@ -1,7 +1,6 @@
-import { IsOptional, IsInt, Min, Max, IsEnum, IsString } from 'class-validator';
+import { IsOptional, IsInt, Min, Max, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '../types/user-response.types';
 
 export class QueryUsersDto {
   @ApiProperty({ description: 'Page number', example: 1, required: false, minimum: 1 })
@@ -18,11 +17,6 @@ export class QueryUsersDto {
   @Min(1)
   @Max(100)
   limit?: number = 10;
-
-  @ApiProperty({ description: 'Filter by role', enum: ['CUSTOMER', 'VENDOR', 'ADMIN'], required: false })
-  @IsOptional()
-  @IsEnum(['CUSTOMER', 'VENDOR', 'ADMIN'])
-  role?: Role;
 
   @ApiProperty({ description: 'Filter by active status', example: true, required: false })
   @IsOptional()

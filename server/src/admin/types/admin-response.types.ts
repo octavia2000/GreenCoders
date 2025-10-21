@@ -40,4 +40,14 @@ export interface PaginatedAdminsResponse {
   meta: PaginationMeta;
 }
 
+export interface AdminBasicResponse {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  department?: string;
+  accessLevel: 'super_admin' | 'admin' | 'moderator';
+}
+
+
+
 

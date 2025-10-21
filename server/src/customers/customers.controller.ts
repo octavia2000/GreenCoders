@@ -1,8 +1,9 @@
-import { Controller, Get, Param, Query, HttpCode, Request, Put, Body, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import { Controller, Get, Param, Query, HttpCode, Request, Put, Body, UseGuards, Patch } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { CustomersService } from './customers.service';
 import { QueryUsersDto } from './dto/query-users.dto';
-import { UpdateProfileDto, ChangePasswordDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -35,13 +36,14 @@ export class CustomersController {
   ========================================
   */
   @Get('profile')
+  @Roles('CUSTOMER')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @ApiOperation({ summary: 'Get current customer profile (includes authMethod for settings)' })
   @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing authentication cookie' })
   async getProfile(@Request() req) {
-    return this.customersService.getUserProfile(req.user.id);
+    return this.customersService.getCustomerProfile(req.user.id);
   }
 
   /* 
@@ -49,7 +51,8 @@ export class CustomersController {
   Update Customer Profile (username, name, picture)
   ========================================
   */
-  @Put('profile')
+  @Patch('profile')
+  @Roles('CUSTOMER')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @ApiOperation({ summary: 'Update customer profile (username, name, picture)' })
@@ -66,6 +69,7 @@ export class CustomersController {
   ========================================
   */
   @Put('change-password')
+  @Roles('CUSTOMER')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @ApiOperation({ summary: 'Change customer password (only for email/password users, not Google)' })
@@ -78,11 +82,11 @@ export class CustomersController {
 
   /* 
   =======================================
-  Get Customer By Id (Admin only)
+  Get Customer By Id 
   ========================================
   */
   @Get(':id')
-  @Roles('ADMIN') // Only admins can get any customer by ID
+  @Roles('ADMIN')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @HttpCode(200)
   @ApiOperation({ summary: 'Get a customer by ID (Admin only)' })
@@ -91,7 +95,7 @@ export class CustomersController {
   @ApiResponse({ status: 403, description: 'Access denied - Admin role required' })
   @ApiResponse({ status: 404, description: 'Customer not found' })
   @ApiParam({ name: 'id', description: 'Customer ID' })
-  async getUserById(@Param('id') id: string) {
-    return this.customersService.getUserById(id);
+  async getCustomerById(@Param('id') id: string) {
+    return this.customersService.getCustomerById(id);
   }
 }

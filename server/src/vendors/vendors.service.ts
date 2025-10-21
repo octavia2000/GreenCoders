@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../customers/entities/user.entity';
+import { UserEntity } from '../auth/user/entities.ts/entities/user.entity';
 import { VendorProfileEntity } from './entities/vendor-profile.entity';
 import { BaseResponse } from './types/vendor-response.types';
 import { QueryVendorsDto } from './dto/query-vendors.dto';
@@ -69,8 +69,39 @@ export class VendorService {
 
   /* 
   =======================================
+  Get Self Vendor Profile
+  ========================================
+  */
+  async getSelfVendorProfile(userId: string): Promise<BaseResponse<any>> {
+    const vendor = await this.userRepository.findOne({
+      where: { id: userId, role: 'VENDOR' },
+      relations: ['vendorProfile'],
+      select: ['id', 'username', 'email', 'phoneNumber', 'isNumberVerified', 'isActive', 'createdAt'],
+    });
+
+    if (!vendor) {
+      throw new NotFoundException(SYS_MSG.VENDOR_NOT_FOUND);
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: SYS_MSG.VENDOR_PROFILE_RETRIEVED_SUCCESS,
+      data: {
+        id: vendor.id,
+        username: vendor.username,
+        email: vendor.email,
+        phoneNumber: vendor.phoneNumber,
+        isNumberVerified: vendor.isNumberVerified,
+        isActive: vendor.isActive,
+        createdAt: vendor.createdAt,
+        vendorProfile: vendor.vendorProfile,
+      },
+    };
+  }
+
+  /* 
+  =======================================
   Get All Vendors (Paginated & Filtered)
-  Uses database indexes on: role, isActive, isVerified
   ========================================
   */
   async getAllVendors(queryDto: QueryVendorsDto): Promise<BaseResponse<{ vendors: any[], total: number, page: number, limit: number }>> {

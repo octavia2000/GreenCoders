@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AdminSeedingService } from './admin-seeding.service';
 import { SeedingCommand } from './seeding.command';
-import { UserEntity } from '../customers/entities/user.entity';
+import { UserEntity } from '../auth/user/entities.ts/entities/user.entity';
 import { AdminProfileEntity } from '../admin/entities/admin-profile.entity';
 
 @Global()

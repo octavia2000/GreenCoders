@@ -10,7 +10,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import * as bcrypt from 'bcrypt';
-import { UserEntity } from '../customers/entities/user.entity';
+import { UserEntity } from './user/entities.ts/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { PasswordResetDto } from './dto/reset-password.dto';
@@ -34,7 +34,6 @@ import {
   AuthUserResponse,
   RequestResetPasswordResponse,
 } from './types/auth-response.types';
-import { UserResponse } from '../customers/types/user-response.types';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
@@ -350,7 +349,7 @@ export class AuthService {
   Generate JWT Token Method
   ========================================
   */
-  generateToken(user: UserResponse): string {
+  generateToken(user: AuthUserResponse): string {
     return this.authHelper.generateToken(user);
   }
 
@@ -464,9 +463,9 @@ export class AuthService {
         message: `${SYS_MSG.WELCOME_EMAIL_SENT} : ${user.email}`,
       },
     };
-  } 
+  }
 
-  
+
   /* 
   =======================================
   Request Reset Password Method
@@ -474,7 +473,7 @@ export class AuthService {
   */
   async requestResetPassword(forgetPasswordDto: ForgetPasswordDto): Promise<BaseResponse<RequestResetPasswordResponse>> {
     const user = await this.userRepository.findOne({ where: {email:forgetPasswordDto.email} });
-    if (!user) throw new NotFoundException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST); 
+    if (!user) throw new NotFoundException(SYS_MSG.USER_ACCOUNT_DOES_NOT_EXIST);
     // Generate 4-digit OTP for password reset
     const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
     user.resetPassword = otpCode;

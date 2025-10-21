@@ -31,7 +31,11 @@ export class AuthController {
     private readonly authHelper: AuthHelperService,
   ) { }
 
-  /** API Endpoint for User Registration */
+    /* 
+  =======================================
+  API Endpoint for User Registration
+  ========================================
+  */
   @Post('register')
   @HttpCode(201)
   @ApiOperation({ summary: 'Register a new user account (Customer, Vendor, or Admin)' })
@@ -41,7 +45,11 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  /** API Endpoint for User Login */
+    /* 
+  =======================================
+  API Endpoint for User Login
+  ========================================
+  */
   @Post('login')
   @HttpCode(200)
   @ApiOperation({ summary: 'Log in a user' })
@@ -56,7 +64,11 @@ export class AuthController {
     return response;
   }
 
-  /** API Endpoint for Google Authentication */
+    /* 
+  =======================================
+  API Endpoint for Google Authentication
+  ========================================
+  */
   @Post('google')
   @HttpCode(200)
   @ApiOperation({ summary: 'Authenticate user with Google OAuth' })
@@ -71,7 +83,11 @@ export class AuthController {
     return response;
   }
 
-  /** API Endpoint for User Logout */
+    /* 
+  =======================================
+  API Endpoint for User Logout
+  ========================================
+  */
   @Post('logout')
   @HttpCode(200)
   @ApiOperation({ summary: 'Log out a user' })
@@ -81,7 +97,11 @@ export class AuthController {
     return this.authService.logout();
   }
 
-  /** API Endpoint for OTP Verification */
+    /* 
+  =======================================
+  API Endpoint for Verifying OTP
+  ========================================
+  */
   @Post('verify-otp')
   @HttpCode(200)
   @ApiOperation({ summary: 'Verify 4-digit OTP sent to phone number' })
@@ -91,7 +111,11 @@ export class AuthController {
     return this.authService.verifyOtp(verifyOtpDto);
   }
 
-  /** API Endpoint for Resending OTP */
+   /* 
+  =======================================
+  API Endpoint for Resending OTP
+  ========================================
+  */
   @Post('resend-otp')
   @HttpCode(200)
   @ApiOperation({ summary: 'Resend OTP to phone number' })

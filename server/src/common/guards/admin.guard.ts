@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
-import { Role } from '../../users/types/user-response.types';
 import * as SYS_MSG from '../../helpers/SystemMessages';
+import { Role } from '../../auth/types/auth-response.types';
 
 @Injectable()
 export class AdminGuard implements CanActivate {

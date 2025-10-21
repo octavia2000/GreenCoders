@@ -1,8 +1,3 @@
-/**
- * Predefined select fields for TypeORM queries
- * Prevents code duplication and ensures consistency
- */
-
 export const USER_PUBLIC_FIELDS = [
   'user.id',
   'user.email',

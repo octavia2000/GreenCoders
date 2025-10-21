@@ -34,7 +34,7 @@ export class VendorsController {
   ========================================
   */
   @Get('dashboard')
-  @Roles('ADMIN') // Only admins can access vendor dashboard stats
+  @Roles('ADMIN')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Get vendor dashboard statistics (Admin only)' })
   @ApiResponse({ status: 200, description: 'Dashboard data retrieved successfully' })
@@ -46,10 +46,26 @@ export class VendorsController {
 
   /* 
   =======================================
+  Get My Vendor Profile (Vendor only)
+  ========================================
+  */
+  @Get('profile')
+  @Roles('VENDOR')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiOperation({ summary: 'Get current vendor profile (Vendor only)' })
+  @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized - Invalid or missing authentication cookie' })
+  @ApiResponse({ status: 403, description: 'Access denied - Vendor role required' })
+  async getMyProfile(@Request() req) {
+    return this.vendorsService.getSelfVendorProfile(req.user.id);
+  }
+
+  /* 
+  =======================================
   Get All Vendors (Admin only)
   ========================================
   */
-  @Get('all')
+  @Get('all-vendors')
   @Roles('ADMIN')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Get all vendors with pagination and filters (Admin only)' })

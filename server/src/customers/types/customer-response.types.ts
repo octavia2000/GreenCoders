@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
+import { Role } from '../../auth/types/auth-response.types'
 
-export type Role = 'CUSTOMER' | 'VENDOR' | 'ADMIN';
 
 export interface BaseResponse<T = any> {
   statusCode: HttpStatus;
@@ -23,32 +23,15 @@ export interface UserBasicResponse {
   createdAt: string;
 }
 
-export interface ProfileSettingsResponse {
-  user: UserBasicResponse;
+export interface CustomerProfileResponse {
+  customer: UserBasicResponse;
   lastLoginAt?: string;
 }
-
-export interface AdminBasicResponse {
-  id: string;
-  firstName?: string;
-  lastName?: string;
-  department?: string;
-  accessLevel: 'super_admin' | 'admin' | 'moderator';
+export interface CustomerBasicResponse {
+  customer: UserBasicResponse
 }
+export type ProfileSettingsResponse = CustomerBasicResponse;
 
-export interface VendorVerificationResponse {
-  id: string;
-  firstName?: string;
-  lastName?: string;
-  isVerified: boolean;
-  verifiedAt?: Date;
-  verifiedBy?: string; // Admin ID who verified
-}
-
-/**
- * Pagination metadata
- * Use with paginated responses
- */
 export interface PaginationMeta {
   total: number;
   page: number;
@@ -61,4 +44,28 @@ export interface PaginatedUsersResponse {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface CustomerListItemResponse {
+  id: string;
+  email: string;
+  username: string
+  profileImageUrl?: string;
+  isActive: boolean;
+}
+
+export interface CustomerListResponse {
+  customer: CustomerListItemResponse
+}
+
+
+export interface PaginatedCustomersListResponse {
+  customers: CustomerListResponse[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface ChangePasswordResponse {
+  success: boolean;
 }

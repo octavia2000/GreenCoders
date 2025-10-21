@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../customers/entities/user.entity';
+import { UserEntity } from '../auth/user/entities.ts/entities/user.entity';
 import { BaseResponse } from './types/admin-response.types';
 import * as SYS_MSG from '../helpers/SystemMessages';
 
@@ -55,36 +55,6 @@ export class AdminService {
           email: vendor.email,
           createdAt: vendor.createdAt,
         })),
-      },
-    };
-  }
-
-  /* 
-  =======================================
-  Get All Vendors
-  ========================================
-  */
-  async getAllVendors(page: number = 1, limit: number = 10): Promise<BaseResponse<{ vendors: any[], total: number }>> {
-    const [vendors, total] = await this.userRepository.findAndCount({
-      where: { role: 'VENDOR' },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-      select: ['id', 'username', 'email', 'isNumberVerified', 'createdAt'],
-    });
-
-    return {
-      statusCode: 200,
-      message: SYS_MSG.VENDORS_RETRIEVED_SUCCESS,
-      data: {
-        vendors: vendors.map(vendor => ({
-          id: vendor.id,
-          username: vendor.username,
-          email: vendor.email,
-          isNumberVerified: vendor.isNumberVerified,
-          createdAt: vendor.createdAt,
-        })),
-        total,
       },
     };
   }

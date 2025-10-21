@@ -12,7 +12,6 @@ export class CustomerProfileEntity extends BaseEntity {
   @Column({ nullable: true })
   profileImageUrl: string;
 
-  // Relationship
   @OneToOne('UserEntity', 'customerProfile', { onDelete: 'CASCADE' })
   @JoinColumn()
   user: any;

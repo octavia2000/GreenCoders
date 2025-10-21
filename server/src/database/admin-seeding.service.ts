@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../customers/entities/user.entity';
+import { UserEntity } from '../auth/user/entities.ts/entities/user.entity';
 import { AdminProfileEntity } from '../admin/entities/admin-profile.entity';
 import * as bcrypt from 'bcrypt';
 

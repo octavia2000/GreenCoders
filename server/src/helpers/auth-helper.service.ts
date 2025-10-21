@@ -3,8 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Request, Response } from 'express';
-import { UserEntity } from '../customers/entities/user.entity';
-import { UserResponse, Role } from '../customers/types/user-response.types';
+import { UserEntity } from '../auth/user/entities.ts/entities/user.entity';
+import { UserResponse, Role } from '../customers/types/customer-response.types';
 import { authConfig } from '../config/auth.config';
 import * as SYS_MSG from './SystemMessages';
 

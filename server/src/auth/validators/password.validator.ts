@@ -8,7 +8,7 @@ import {
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../../users/entities/user.entity';
+import { UserEntity } from '../user/entities/user.entity';
 import * as bcrypt from 'bcrypt';
 
 @ValidatorConstraint({ name: 'isStrongPassword', async: true })
@@ -18,7 +18,11 @@ export class IsStrongPasswordConstraint implements ValidatorConstraintInterface 
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
   ) {}
-
+   /* 
+  =======================================
+  Validate Strong Password
+  ========================================
+  */
   async validate(password: string, args: ValidationArguments) {
     if (!password) return false;
 
@@ -56,7 +60,11 @@ export class IsStrongPasswordConstraint implements ValidatorConstraintInterface 
     return 'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, one special character, and must be unique across all users';
   }
 }
-
+   /* 
+  =======================================
+  Validator for Strong Password
+  ========================================
+  */
 export function IsStrongPassword(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
     registerDecorator({

@@ -1,7 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
-import { Role } from '../../users/types/user-response.types';
 
-export { Role };
+export type Role = 'CUSTOMER' | 'VENDOR' | 'ADMIN';
 
 export interface BaseResponse<T = any> {
   statusCode: HttpStatus;
