@@ -9,28 +9,28 @@ export function PresentlyOnSales() {
       id: 1,
       name: "Apple iPhone 14 Pro 512GB Gold (MQ233)",
       price: "$1437",
-      image: "/src/assets/images/iphone.svg",
+      image: "/iphone.svg",
       originalPrice: "$1599"
     },
     {
       id: 2,
       name: "AirPods Max Silver",
       price: "$549",
-      image: "/src/assets/images/headset.svg",
+      image: "/headset.svg",
       originalPrice: "$599"
     },
     {
       id: 3,
       name: "Apple Watch Series 9 GPS 41mm Starlight Aluminium Case",
       price: "$399",
-      image: "/src/assets/images/watch.svg",
+      image: "/watch.svg",
       originalPrice: "$449"
     },
     {
       id: 4,
       name: "Apple iPhone 14 Pro 1TB Gold (MQ2V3)",
       price: "$1499",
-      image: "/src/assets/images/iphone2.svg",
+      image: "/iphone2.svg",
       originalPrice: "$1699"
     }
   ];

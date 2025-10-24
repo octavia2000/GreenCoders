@@ -1,6 +1,5 @@
 import { Button } from "../ui/button"
 import { Link } from "react-router-dom";
-import shoeImage from "../../assets/images/shoe-header.svg";
 
 export function Hero() {
   return (
@@ -37,7 +36,7 @@ export function Hero() {
           <div className="flex justify-center lg:justify-end relative">
             <div className="relative w-full max-w-md lg:max-w-lg xl:max-w-xl">
               <img 
-                src={shoeImage} 
+                src="/shoe-header.svg" 
                 alt="Sustainable Eco-Friendly Shoes" 
                 className="w-full h-auto object-contain"
               />

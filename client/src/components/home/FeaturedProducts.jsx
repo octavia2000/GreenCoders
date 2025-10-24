@@ -10,7 +10,7 @@ export function FeaturedProducts() {
       name: "Birkin Bag",
       description: "Brown durable eco-friendly made from quality leather",
       price: "$600",
-      image: "/src/assets/images/feat-1.svg",
+      image: "/feat-1.svg",
       originalPrice: "$800"
     },
     {
@@ -18,7 +18,7 @@ export function FeaturedProducts() {
       name: "Wireless Headphones",
       description: "Beige over-ear headphones with noise cancellation",
       price: "$299",
-      image: "/src/assets/images/feat-2.svg",
+      image: "/feat-2.svg",
       originalPrice: "$399"
     },
     {
@@ -26,7 +26,7 @@ export function FeaturedProducts() {
       name: "Leather Wallet",
       description: "Brown eco-friendly leather wallet with RFID protection",
       price: "$89",
-      image: "/src/assets/images/feat-3.svg",
+      image: "/feat-3.svg",
       originalPrice: "$120"
     },
     {
@@ -34,7 +34,7 @@ export function FeaturedProducts() {
       name: "Eco Sneakers",
       description: "Light green and white sneakers made from recycled materials",
       price: "$149",
-      image: "/src/assets/images/feat-4.svg",
+      image: "/feat-4.svg",
       originalPrice: "$199"
     }
   ];
