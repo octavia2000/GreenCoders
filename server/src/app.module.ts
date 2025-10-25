@@ -7,10 +7,10 @@ import { CustomersModule } from './customers/customers.module';
 import { VendorsModule } from './vendors/vendors.module';
 import { AdminModule } from './admin/admin.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
+import { DatabaseModule } from './database/database.module';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import databaseConfig from './config/database.config';
-import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [

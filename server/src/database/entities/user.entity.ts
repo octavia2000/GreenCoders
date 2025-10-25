@@ -9,6 +9,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { BaseEntity } from '../../shared/entities/base-entity';
 import { Role } from '../../auth/types/auth-response.types';
+import { AdminType, AdminPermission } from '../../admin/constants/admin-permissions';
 
 @Entity('users')
 @Index(['email']) // For login queries
@@ -82,14 +83,14 @@ export class UserEntity extends BaseEntity {
   department: string;
 
   @Column({ type: 'jsonb', nullable: true })
-  permissions: string[]; // Array of specific permissions
+  permissions?: AdminPermission[]; // Array of specific permissions
 
   @Column({
     type: 'enum',
-    enum: ['super_admin', 'admin', 'moderator'],
-    default: 'admin',
+    enum: AdminType,
+    nullable: true,
   })
-  accessLevel: string;
+  adminType?: AdminType;
 
   @BeforeInsert()
   async hashPassword() {

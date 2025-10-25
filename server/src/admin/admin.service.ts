@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { UserEntity } from '../database/entities/user.entity';
-import { AdminEntity } from '../database/entities/admin.entity';
 import { VendorEntity } from '../database/entities/vendor.entity';
 import { VendorBusinessVerificationEntity } from '../database/entities/vendor-business-verification.entity';
 import { AdminInvitationEntity, AdminInvitationStatus } from '../database/entities/admin-invitation.entity';
@@ -31,8 +30,6 @@ export class AdminService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
-    @InjectRepository(AdminEntity)
-    private readonly adminRepository: Repository<AdminEntity>,
     @InjectRepository(VendorEntity)
     private readonly vendorRepository: Repository<VendorEntity>,
     @InjectRepository(VendorBusinessVerificationEntity)
@@ -286,7 +283,7 @@ export class AdminService {
       username: username,
       phoneNumber: '', // Will be set later
       role: Role.ADMIN,
-      accessLevel: invitation.adminType,
+      adminType: invitation.adminType,
       permissions: permissions,
       department: invitation.department,
       isActive: true,
@@ -493,9 +490,8 @@ export class AdminService {
     const limit = queryDto.limit || 10;
     const skip = (page - 1) * limit;
 
-    const queryBuilder = this.adminRepository
-      .createQueryBuilder('admin')
-      .leftJoinAndSelect('admin.user', 'user')
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
       .where('user.role = :role', { role: Role.ADMIN });
 
     // Apply filters
@@ -507,19 +503,19 @@ export class AdminService {
     }
 
     if (queryDto.department) {
-      queryBuilder.andWhere('admin.department = :department', { department: queryDto.department });
+      queryBuilder.andWhere('user.department = :department', { department: queryDto.department });
     }
 
     if (queryDto.accessLevel) {
-      queryBuilder.andWhere('admin.accessLevel = :accessLevel', { accessLevel: queryDto.accessLevel });
+      queryBuilder.andWhere('user.adminType = :accessLevel', { accessLevel: queryDto.accessLevel });
     }
 
     if (queryDto.isActive !== undefined) {
-      queryBuilder.andWhere('admin.isActive = :isActive', { isActive: queryDto.isActive });
+      queryBuilder.andWhere('user.isActive = :isActive', { isActive: queryDto.isActive });
     }
 
     const [admins, total] = await queryBuilder
-      .orderBy('admin.createdAt', 'DESC')
+      .orderBy('user.createdAt', 'DESC')
       .skip(skip)
       .take(limit)
       .getManyAndCount();
@@ -530,25 +526,15 @@ export class AdminService {
       data: {
         admins: admins.map(admin => ({
           id: admin.id,
-          userId: admin.userId,
-          email: admin.user.email,
-          username: admin.user.username,
+          email: admin.email,
+          username: admin.username,
           firstName: admin.firstName,
           lastName: admin.lastName,
           department: admin.department,
-          accessLevel: admin.accessLevel,
-          employeeId: admin.employeeId,
-          jobTitle: admin.jobTitle,
-          reportingManager: admin.reportingManager,
-          assignedModules: admin.assignedModules,
-          workingHours: admin.workingHours,
-          officeLocation: admin.officeLocation,
-          officePhoneNumber: admin.officePhoneNumber,
-          emergencyContact: admin.emergencyContact,
-          emergencyContactDetails: admin.emergencyContactDetails,
+          adminType: admin.adminType,
+          permissions: admin.permissions,
           isActive: admin.isActive,
           lastLoginAt: admin.lastLoginAt,
-          lastActivityAt: admin.lastActivityAt,
           createdAt: admin.createdAt,
           updatedAt: admin.updatedAt,
         })),
@@ -560,10 +546,9 @@ export class AdminService {
   }
 
   async getAdminById(adminId: string): Promise<BaseResponse<any>> {
-    const admin = await this.adminRepository
-      .createQueryBuilder('admin')
-      .leftJoinAndSelect('admin.user', 'user')
-      .where('admin.id = :adminId', { adminId })
+    const admin = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id = :adminId', { adminId })
       .andWhere('user.role = :role', { role: Role.ADMIN })
       .getOne();
 
@@ -576,25 +561,15 @@ export class AdminService {
       message: 'Admin retrieved successfully',
       data: {
         id: admin.id,
-        userId: admin.userId,
-        email: admin.user.email,
-        username: admin.user.username,
+        email: admin.email,
+        username: admin.username,
         firstName: admin.firstName,
         lastName: admin.lastName,
         department: admin.department,
-        accessLevel: admin.accessLevel,
-        employeeId: admin.employeeId,
-        jobTitle: admin.jobTitle,
-        reportingManager: admin.reportingManager,
-        assignedModules: admin.assignedModules,
-        workingHours: admin.workingHours,
-        officeLocation: admin.officeLocation,
-        officePhoneNumber: admin.officePhoneNumber,
-        emergencyContact: admin.emergencyContact,
-        emergencyContactDetails: admin.emergencyContactDetails,
+        adminType: admin.adminType,
+        permissions: admin.permissions,
         isActive: admin.isActive,
         lastLoginAt: admin.lastLoginAt,
-        lastActivityAt: admin.lastActivityAt,
         createdAt: admin.createdAt,
         updatedAt: admin.updatedAt,
       },
@@ -631,26 +606,14 @@ export class AdminService {
 
     const savedUser = await this.userRepository.save(user);
 
-    // Create admin profile
-    const admin = this.adminRepository.create({
-      userId: savedUser.id,
-      firstName: createAdminDto.firstName,
-      lastName: createAdminDto.lastName,
-      department: createAdminDto.department,
-      accessLevel: createAdminDto.accessLevel,
-      employeeId: createAdminDto.employeeId,
-      jobTitle: createAdminDto.jobTitle,
-      reportingManager: createAdminDto.reportingManager,
-      assignedModules: createAdminDto.assignedModules,
-      workingHours: createAdminDto.workingHours,
-      officeLocation: createAdminDto.officeLocation,
-      officePhoneNumber: createAdminDto.officePhoneNumber,
-      emergencyContact: createAdminDto.emergencyContact,
-      emergencyContactDetails: createAdminDto.emergencyContactDetails,
-      isActive: true,
-    });
+    // Update user with admin-specific fields
+    savedUser.firstName = createAdminDto.firstName;
+    savedUser.lastName = createAdminDto.lastName;
+    savedUser.department = createAdminDto.department;
+    savedUser.adminType = createAdminDto.accessLevel;
+    savedUser.permissions = getPermissionsForAdminType(createAdminDto.accessLevel);
 
-    const savedAdmin = await this.adminRepository.save(admin);
+    const savedAdmin = await this.userRepository.save(savedUser);
 
     this.logger.log(`Admin created successfully: ${savedUser.email}`);
 
@@ -659,7 +622,6 @@ export class AdminService {
       message: 'Admin created successfully',
       data: {
         id: savedAdmin.id,
-        userId: savedAdmin.userId,
         email: savedUser.email,
         username: savedUser.username,
       },
@@ -667,10 +629,9 @@ export class AdminService {
   }
 
   async updateAdmin(adminId: string, updateAdminDto: UpdateAdminDto): Promise<BaseResponse<any>> {
-    const admin = await this.adminRepository
-      .createQueryBuilder('admin')
-      .leftJoinAndSelect('admin.user', 'user')
-      .where('admin.id = :adminId', { adminId })
+    const admin = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id = :adminId', { adminId })
       .andWhere('user.role = :role', { role: Role.ADMIN })
       .getOne();
 
@@ -680,40 +641,41 @@ export class AdminService {
 
     // Update user fields if provided
     if (updateAdminDto.firstName !== undefined) {
-      admin.user.firstName = updateAdminDto.firstName;
+      admin.firstName = updateAdminDto.firstName;
     }
     if (updateAdminDto.lastName !== undefined) {
-      admin.user.lastName = updateAdminDto.lastName;
+      admin.lastName = updateAdminDto.lastName;
     }
     if (updateAdminDto.phoneNumber !== undefined) {
-      admin.user.phoneNumber = updateAdminDto.phoneNumber;
+      admin.phoneNumber = updateAdminDto.phoneNumber;
+    }
+    if (updateAdminDto.department !== undefined) {
+      admin.department = updateAdminDto.department;
+    }
+    if (updateAdminDto.accessLevel !== undefined) {
+      admin.adminType = updateAdminDto.accessLevel;
+      admin.permissions = getPermissionsForAdminType(updateAdminDto.accessLevel);
     }
 
-    // Update admin profile fields
-    Object.assign(admin, updateAdminDto);
+    const savedAdmin = await this.userRepository.save(admin);
 
-    await this.userRepository.save(admin.user);
-    const savedAdmin = await this.adminRepository.save(admin);
-
-    this.logger.log(`Admin updated successfully: ${admin.user.email}`);
+    this.logger.log(`Admin updated successfully: ${admin.email}`);
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Admin updated successfully',
       data: {
         id: savedAdmin.id,
-        userId: savedAdmin.userId,
-        email: savedAdmin.user.email,
-        username: savedAdmin.user.username,
+        email: savedAdmin.email,
+        username: savedAdmin.username,
       },
     };
   }
 
   async deactivateAdmin(adminId: string): Promise<BaseResponse<any>> {
-    const admin = await this.adminRepository
-      .createQueryBuilder('admin')
-      .leftJoinAndSelect('admin.user', 'user')
-      .where('admin.id = :adminId', { adminId })
+    const admin = await this.userRepository
+      .createQueryBuilder('user')
+      .where('user.id = :adminId', { adminId })
       .andWhere('user.role = :role', { role: Role.ADMIN })
       .getOne();
 
@@ -721,15 +683,11 @@ export class AdminService {
       throw new NotFoundException('Admin not found');
     }
 
-    // Deactivate admin profile
-    admin.isActive = false;
-    await this.adminRepository.save(admin);
-
     // Deactivate user account
-    admin.user.isActive = false;
-    await this.userRepository.save(admin.user);
+    admin.isActive = false;
+    await this.userRepository.save(admin);
 
-    this.logger.log(`Admin deactivated successfully: ${admin.user.email}`);
+    this.logger.log(`Admin deactivated successfully: ${admin.email}`);
 
     return {
       statusCode: HttpStatus.OK,

@@ -5,9 +5,13 @@ import { CustomersController } from './customers.controller';
 import { CustomersService } from './customers.service';
 import { UserEntity } from '../database/entities/user.entity';
 import { CustomersRepository } from './repositories/customers.repository';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity])],
+  imports: [
+    TypeOrmModule.forFeature([UserEntity]),
+    AuthModule,
+  ],
   controllers: [CustomersController],
   providers: [CustomersService, CustomersRepository],
   exports: [CustomersService],

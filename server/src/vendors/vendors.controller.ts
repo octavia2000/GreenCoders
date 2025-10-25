@@ -22,6 +22,7 @@ import { SubmitBusinessVerificationDto } from './dto/submit-business-verificatio
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/types/auth-response.types';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { ADMIN_PERMISSIONS } from '../admin/constants/admin-permissions';
@@ -43,7 +44,7 @@ export class VendorsController {
   ========================================
   */
   @Get('dashboard')
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   @RequirePermissions(ADMIN_PERMISSIONS.SUPER_ADMIN, ADMIN_PERMISSIONS.VENDOR_ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard, RateLimitGuard)
   @RateLimit(RATE_LIMITS.MODERATE)
@@ -71,7 +72,7 @@ export class VendorsController {
   ========================================
   */
   @Get('profile')
-  @Roles('VENDOR')
+  @Roles(Role.VENDOR)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiOperation({ summary: 'Get current vendor profile (Vendor only)' })
   @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
@@ -93,7 +94,7 @@ export class VendorsController {
   ========================================
   */
   @Get('all-vendors')
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   @RequirePermissions(ADMIN_PERMISSIONS.SUPER_ADMIN, ADMIN_PERMISSIONS.VENDOR_ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard, RateLimitGuard)
   @RateLimit(RATE_LIMITS.MODERATE)
@@ -150,7 +151,7 @@ export class VendorsController {
   ========================================
   */
   @Get(':id')
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   @RequirePermissions(ADMIN_PERMISSIONS.SUPER_ADMIN, ADMIN_PERMISSIONS.VENDOR_ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @ApiOperation({ summary: 'Get vendor by ID (Admin only)' })
@@ -174,7 +175,7 @@ export class VendorsController {
   ========================================
   */
   @Put('profile')
-  @Roles('VENDOR')
+  @Roles(Role.VENDOR)
   @UseGuards(JwtAuthGuard, RolesGuard, RateLimitGuard)
   @RateLimit(RATE_LIMITS.VENDOR_PROFILE_UPDATE)
   @ApiOperation({ summary: 'Update vendor profile (Vendor only)' })
@@ -208,7 +209,7 @@ export class VendorsController {
   ========================================
   */
   @Post('verification/submit')
-  @Roles('VENDOR')
+  @Roles(Role.VENDOR)
   @UseGuards(RateLimitGuard)
   @RateLimit(RATE_LIMITS.STRICT)
   @ApiOperation({ summary: 'Submit business verification (Vendor only)' })
@@ -229,7 +230,7 @@ export class VendorsController {
   ========================================
   */
   @Put('profile')
-  @Roles('VENDOR')
+  @Roles(Role.VENDOR)
   @UseGuards(RateLimitGuard)
   @RateLimit(RATE_LIMITS.STRICT)
   @ApiOperation({ summary: 'Update vendor profile (Personal info - Vendor only)' })
@@ -250,7 +251,7 @@ export class VendorsController {
   ========================================
   */
   @Get('verification/status')
-  @Roles('VENDOR')
+  @Roles(Role.VENDOR)
   @ApiOperation({ summary: 'Get vendor verification status (Vendor only)' })
   @ApiResponse({ status: 200, description: 'Verification status retrieved successfully' })
   @ApiResponse({ status: 403, description: 'Access denied - Vendor role required' })

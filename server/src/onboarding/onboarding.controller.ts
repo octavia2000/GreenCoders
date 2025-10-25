@@ -16,6 +16,7 @@ import {
   AuthMiddleware,
   AuthenticatedRequest,
 } from '../auth/middleware/auth.middleware';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   RateLimitGuard,
   RateLimit,
@@ -89,7 +90,7 @@ export class OnboardingController {
   */
   @Post('logout')
   @HttpCode(200)
-  @UseGuards(AuthMiddleware)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Log out a user' })
   @ApiResponse({ status: 200, description: 'User successfully logged out' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })

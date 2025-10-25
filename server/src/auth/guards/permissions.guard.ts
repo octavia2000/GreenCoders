@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { AdminPermission } from '../../admin/constants/admin-permissions';
 import { hasPermission } from '../../admin/constants/admin-permissions';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
+import { Role } from '../types/auth-response.types';
 import * as SYS_MSG from '../../helpers/SystemMessages';
 
 @Injectable()
@@ -34,7 +35,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     // Check if user has admin role
-    if (user.role !== 'ADMIN') {
+    if (user.role !== Role.ADMIN) {
       throw new ForbiddenException(SYS_MSG.ACCESS_DENIED_ADMIN);
     }
 

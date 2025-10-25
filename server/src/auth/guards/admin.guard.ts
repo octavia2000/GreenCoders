@@ -5,6 +5,7 @@ import {
   ForbiddenException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Role } from '../types/auth-response.types';
 import * as SYS_MSG from '../../helpers/SystemMessages';
 
 @Injectable()
@@ -17,8 +18,7 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException(SYS_MSG.AUTHENTICATION_REQUIRED);
     }
 
-    const ADMIN_ROLE: string = 'ADMIN';
-    if (user.role !== ADMIN_ROLE) {
+    if (user.role !== Role.ADMIN) {
       throw new ForbiddenException(SYS_MSG.ACCESS_DENIED_ADMIN);
     }
 

@@ -470,7 +470,7 @@ export class OnboardingService {
         phoneNumber: '', // Optional for Google users
         isNumberVerified: false, // Google users don't verify phone
         authMethod: 'google',
-        role: 'CUSTOMER' as Role,
+        role: Role.CUSTOMER,
       });
       await this.userRepository.save(user);
     }

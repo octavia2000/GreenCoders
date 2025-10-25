@@ -8,7 +8,7 @@ import { VendorProfileEntity } from '../database/entities/vendor-profile.entity'
 import { VendorBusinessVerificationEntity } from '../database/entities/vendor-business-verification.entity';
 import { AuthModule } from '../auth/auth.module';
 import { InputSanitizationService } from '../shared/services/input-sanitization.service';
-import { EncryptionService } from '../shared/services/encryption.service';
+import { RateLimitGuard } from '../shared/guards/rate-limit.guard';
 
 @Module({
   imports: [
@@ -20,7 +20,7 @@ import { EncryptionService } from '../shared/services/encryption.service';
     VendorService,
     VendorsRepository,
     InputSanitizationService,
-    EncryptionService,
+    RateLimitGuard,
   ],
   exports: [VendorService, VendorsRepository],
 })

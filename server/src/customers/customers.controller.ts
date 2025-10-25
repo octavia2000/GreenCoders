@@ -18,6 +18,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/types/auth-response.types';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { ADMIN_PERMISSIONS } from '../admin/constants/admin-permissions';
@@ -33,7 +34,7 @@ export class CustomersController {
   ========================================
   */
   @Get()
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   @RequirePermissions(ADMIN_PERMISSIONS.SUPER_ADMIN, ADMIN_PERMISSIONS.CUSTOMER_ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @HttpCode(200)
@@ -59,7 +60,7 @@ export class CustomersController {
   ========================================
   */
   @Get('profile')
-  @Roles('CUSTOMER')
+  @Roles(Role.CUSTOMER)
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @ApiOperation({
@@ -80,7 +81,7 @@ export class CustomersController {
   ========================================
   */
   @Patch('profile')
-  @Roles('CUSTOMER')
+  @Roles(Role.CUSTOMER)
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @ApiOperation({
@@ -108,7 +109,7 @@ export class CustomersController {
   ========================================
   */
   @Put('change-password')
-  @Roles('CUSTOMER')
+  @Roles(Role.CUSTOMER)
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   @ApiOperation({
@@ -138,7 +139,7 @@ export class CustomersController {
   ========================================
   */
   @Get(':id')
-  @Roles('ADMIN')
+  @Roles(Role.ADMIN)
   @RequirePermissions(ADMIN_PERMISSIONS.SUPER_ADMIN, ADMIN_PERMISSIONS.CUSTOMER_ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
   @HttpCode(200)

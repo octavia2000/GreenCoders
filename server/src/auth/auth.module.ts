@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { JwtService } from '@nestjs/jwt';
 
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
@@ -31,7 +32,7 @@ import { authConfig } from '../config/auth.config';
     AuthHelperService,
     IsStrongPasswordConstraint,
   ],
-  exports: [AuthService, JwtStrategy, PassportModule, AuthHelperService],
+  exports: [AuthService, JwtStrategy, PassportModule, AuthHelperService, PhoneNormalizerService, JwtModule],
 })
 export class AuthModule {
   // Auth module for handling authentication

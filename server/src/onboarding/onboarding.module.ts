@@ -6,6 +6,7 @@ import { AuthModule } from '../auth/auth.module';
 import { UserEntity } from '../database/entities/user.entity';
 import { EmailModule } from '../shared/notifications/email.module';
 import { SmsModule } from '../shared/notifications/sms.module';
+import { RateLimitGuard } from '../shared/guards/rate-limit.guard';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { SmsModule } from '../shared/notifications/sms.module';
     SmsModule,
   ],
   controllers: [OnboardingController],
-  providers: [OnboardingService],
+  providers: [OnboardingService, RateLimitGuard],
   exports: [OnboardingService],
 })
 export class OnboardingModule {}
