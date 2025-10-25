@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
-import { UserEntity } from '../users/entities/user.entity';
+import { UserEntity } from '../database/entities/user.entity';
 import { AuthHelperService } from './auth-helper.service';
 import { PhoneNormalizerService } from './phone-normalizer.service';
 import { HelperService } from './helper.service';
@@ -19,4 +19,3 @@ import { authConfig } from '../config/auth.config';
   exports: [AuthHelperService, PhoneNormalizerService, HelperService],
 })
 export class HelpersModule {}
-

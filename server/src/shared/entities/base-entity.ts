@@ -15,4 +15,3 @@ export abstract class BaseEntity {
     this.updatedAt = new Date();
   }
 }
-

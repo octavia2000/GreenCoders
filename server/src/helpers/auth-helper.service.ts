@@ -3,8 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Request, Response } from 'express';
-import { UserEntity } from '../auth/user/entities.ts/entities/user.entity';
-import { UserResponse, Role } from '../customers/types/customer-response.types';
+import { UserEntity } from '../database/entities/user.entity';
+import { Role } from '../auth/types/auth-response.types';
 import { authConfig } from '../config/auth.config';
 import * as SYS_MSG from './SystemMessages';
 
@@ -46,28 +46,12 @@ export class AuthHelperService {
   */
 
   /* Generates JWT token for authenticated user */
-  generateToken(user: UserResponse): string {
-    return this.jwtService.sign({ 
-      sub: user.id, 
-      email: user.email, 
-      role: user.role as Role 
+  generateToken(user: UserEntity): string {
+    return this.jwtService.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role as Role,
     });
-  }
-
-  /* 
-  =======================================
-  Cookie Management Methods
-  ========================================
-  */
-
-  /* Sets authentication cookie in response */
-  setAuthCookie(res: Response, token: string): void {
-    res.cookie(authConfig.cookie.name, token, authConfig.cookie.options);
-  }
-
-  /* Clears authentication cookie from response */
-  clearAuthCookie(res: Response): void {
-    res.clearCookie(authConfig.cookie.name, authConfig.cookie.options);
   }
 
   /* 
@@ -80,8 +64,10 @@ export class AuthHelperService {
   async generateUniqueUsername(baseUsername: string): Promise<string> {
     let counter = 1;
     let finalUsername = baseUsername;
-    
-    while (await this.userRepository.findOne({ where: { username: finalUsername } })) {
+
+    while (
+      await this.userRepository.findOne({ where: { username: finalUsername } })
+    ) {
       finalUsername = `${baseUsername}${counter}`;
       counter++;
     }
@@ -92,16 +78,18 @@ export class AuthHelperService {
   async generateUsernameFromEmail(email: string): Promise<string> {
     const emailPrefix = email.split('@')[0];
     const cleanPrefix = emailPrefix.toLowerCase().replace(/[^a-z0-9]/g, '');
-    
-    let baseUsername = cleanPrefix;
+
+    const baseUsername = cleanPrefix;
     let counter = 1;
     let finalUsername = baseUsername;
-    
-    while (await this.userRepository.findOne({ where: { username: finalUsername } })) {
+
+    while (
+      await this.userRepository.findOne({ where: { username: finalUsername } })
+    ) {
       finalUsername = `${baseUsername}${counter}`;
       counter++;
     }
-    
+
     return finalUsername;
   }
 
@@ -118,4 +106,3 @@ export class AuthHelperService {
     return `${email}:google:${timestamp}:${randomSalt}`;
   }
 }
-

@@ -1,14 +1,17 @@
 import { registerAs } from '@nestjs/config';
 
-// Direct export for backward compatibility (used in strategies, helpers)
 export const authConfig = {
   cookie: {
-    name: process.env.COOKIE_NAME || 'Auth',
+    name: process.env.COOKIE_NAME || 'accessToken',
     options: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: (process.env.COOKIE_SAME_SITE || 'lax') as 'strict' | 'lax' | 'none',
-      maxAge: parseInt(process.env.COOKIE_MAX_AGE, 10) || 1000 * 60 * 60 * 24 * 7, // 7 days
+      sameSite: (process.env.COOKIE_SAME_SITE || 'strict') as
+        | 'strict'
+        | 'lax'
+        | 'none',
+      maxAge:
+        parseInt(process.env.COOKIE_MAX_AGE, 10) || 1000 * 60 * 60 * 24 * 7, // 7 days
       path: '/',
     },
   },
@@ -18,5 +21,4 @@ export const authConfig = {
   },
 };
 
-// NestJS ConfigModule integration (for services using ConfigService)
 export default registerAs('auth', () => authConfig);

@@ -1,6 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
-import { Role } from '../../auth/types/auth-response.types'
-
+import { Role } from '../../auth/types/auth-response.types';
 
 export interface BaseResponse<T = any> {
   statusCode: HttpStatus;
@@ -28,7 +27,7 @@ export interface CustomerProfileResponse {
   lastLoginAt?: string;
 }
 export interface CustomerBasicResponse {
-  customer: UserBasicResponse
+  customer: UserBasicResponse;
 }
 export type ProfileSettingsResponse = CustomerBasicResponse;
 
@@ -49,15 +48,14 @@ export interface PaginatedUsersResponse {
 export interface CustomerListItemResponse {
   id: string;
   email: string;
-  username: string
+  username: string;
   profileImageUrl?: string;
   isActive: boolean;
 }
 
 export interface CustomerListResponse {
-  customer: CustomerListItemResponse
+  customer: CustomerListItemResponse;
 }
-
 
 export interface PaginatedCustomersListResponse {
   customers: CustomerListResponse[];
@@ -68,4 +66,11 @@ export interface PaginatedCustomersListResponse {
 
 export interface ChangePasswordResponse {
   success: boolean;
+}
+
+export interface CustomersListResponse {
+  customers: CustomerListResponse[];
+  total: number;
+  page: number;
+  limit: number;
 }

@@ -26,13 +26,15 @@ export class SmsService {
     }
   }
 
-
   /* 
   =======================================
   Send OTP Method
   ========================================
   */
-  async sendOtp(phone: string, otp: string): Promise<{ success: boolean; message: string }> {
+  async sendOtp(
+    phone: string,
+    otp: string,
+  ): Promise<{ success: boolean; message: string }> {
     if (!phone || !otp) {
       throw new BadRequestException(SYS_MSG.MISSING_FIELDS);
     }
@@ -54,9 +56,9 @@ This code will expire in 5 minutes.`;
       const url = `${this.baseUrl}/sms/send`;
 
       const headers = {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       };
 
       const data = {
@@ -67,12 +69,13 @@ This code will expire in 5 minutes.`;
       };
 
       const response = await firstValueFrom(
-        this.httpService.post(url, data, { headers })
+        this.httpService.post(url, data, { headers }),
       );
 
-      this.logger.log(`OTP sent successfully to ${champNumber}. Status: ${response.data.status}`);
+      this.logger.log(
+        `OTP sent successfully to ${champNumber}. Status: ${response.data.status}`,
+      );
       return { success: true, message: SYS_MSG.SMS_OTP_SENT };
-
     } catch (error) {
       this.logger.error(`Failed to send OTP to ${champNumber}:`, error);
       throw new BadRequestException(SYS_MSG.OTP_SEND_FAILED);
@@ -89,20 +92,26 @@ This code will expire in 5 minutes.`;
       throw new BadRequestException(SYS_MSG.INVALID_PHONE_FORMAT);
     }
 
-    let sendchampNumber = phoneNumber.trim();
+    const sendchampNumber = phoneNumber.trim();
 
     // Handle different Nigerian phone number formats
     if (sendchampNumber.startsWith('234') && sendchampNumber.length === 13) {
       return sendchampNumber; // SendChamp wants 2348012345678
-    } else if (sendchampNumber.startsWith('0') && sendchampNumber.length === 11) {
+    } else if (
+      sendchampNumber.startsWith('0') &&
+      sendchampNumber.length === 11
+    ) {
       return '234' + sendchampNumber.substring(1);
-    } else if (sendchampNumber.startsWith('+234') && sendchampNumber.length === 14) {
+    } else if (
+      sendchampNumber.startsWith('+234') &&
+      sendchampNumber.length === 14
+    ) {
       return sendchampNumber.substring(1);
     }
 
-    this.logger.warn(`Unrecognized phone number format: ${phoneNumber}. Using as-is.`);
+    this.logger.warn(
+      `Unrecognized phone number format: ${phoneNumber}. Using as-is.`,
+    );
     return sendchampNumber;
   }
 }
-
-

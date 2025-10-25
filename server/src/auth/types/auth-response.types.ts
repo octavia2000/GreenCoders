@@ -1,11 +1,26 @@
 import { HttpStatus } from '@nestjs/common';
 
-export type Role = 'CUSTOMER' | 'VENDOR' | 'ADMIN';
+export enum Role {
+  CUSTOMER = 'CUSTOMER',
+  VENDOR = 'VENDOR',
+  ADMIN = 'ADMIN',
+}
 
 export interface BaseResponse<T = any> {
   statusCode: HttpStatus;
   message: string;
   data: T;
+}
+
+export interface TokenPayload {
+  sub: string;
+  email: string;
+  role: Role;
+  username: string;
+}
+
+export interface TokenResponse {
+  accessToken: string;
 }
 
 export interface AuthUserResponse {

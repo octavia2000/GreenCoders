@@ -7,7 +7,7 @@ export class PhoneNormalizerService {
       throw new Error('Phone number is required');
     }
     // Remove all non-digit characters except +
-    let cleaned = phoneNumber.replace(/[^\d+]/g, '');
+    const cleaned = phoneNumber.replace(/[^\d+]/g, '');
     // If it starts with +, keep it
     if (cleaned.startsWith('+')) {
       return cleaned;
@@ -17,15 +17,15 @@ export class PhoneNormalizerService {
       // Common country codes mapping
       const countryCodes: { [key: string]: string } = {
         '234': '+234', // Nigeria
-        '1': '+1',     // US/Canada
-        '44': '+44',   // UK
-        '33': '+33',   // France
-        '49': '+49',   // Germany
-        '86': '+86',   // China
-        '91': '+91',   // India
-        '81': '+81',   // Japan
-        '55': '+55',   // Brazil
-        '61': '+61',   // Australia
+        '1': '+1', // US/Canada
+        '44': '+44', // UK
+        '33': '+33', // France
+        '49': '+49', // Germany
+        '86': '+86', // China
+        '91': '+91', // India
+        '81': '+81', // Japan
+        '55': '+55', // Brazil
+        '61': '+61', // Australia
       };
 
       // Check for 3-digit country codes first

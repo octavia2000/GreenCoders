@@ -4,23 +4,39 @@
  */
 
 export const VENDOR_BASIC_FIELDS = [
-  'user.id',
-  'user.email',
-  'user.username',
-  'user.phoneNumber',
-  'user.isNumberVerified',
-  'user.isActive',
-  'user.createdAt',
-] as const;
+  'id',
+  'email',
+  'username',
+  'phoneNumber',
+  'isNumberVerified',
+  'isActive',
+  'createdAt',
+] as string[];
 
 export const VENDOR_PROFILE_FIELDS = [
-  'vendorProfile.id',
-  'vendorProfile.firstName',
-  'vendorProfile.lastName',
-  'vendorProfile.profileImageUrl',
-  'vendorProfile.isVerified',
-  'vendorProfile.verifiedAt',
-  'vendorProfile.verifiedBy',
-] as const;
+  'id',
+  'firstName',
+  'lastName',
+  'profileImageUrl',
+  'isVerified',
+  'verifiedAt',
+  'verifiedBy',
+] as string[];
 
+// Additional field sets for different use cases
+export const VENDOR_DASHBOARD_FIELDS = [
+  'id',
+  'username',
+  'email',
+  'isVerified',
+  'createdAt',
+] as string[];
 
+export const VENDOR_VERIFICATION_FIELDS = [
+  'id',
+  'email',
+  'username',
+  'isVerified',
+  'verifiedAt',
+  'verifiedBy',
+] as string[];

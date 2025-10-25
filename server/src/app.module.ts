@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { CustomersModule } from './customers/customers.module';
 import { VendorsModule } from './vendors/vendors.module';
 import { AdminModule } from './admin/admin.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import databaseConfig from './config/database.config';
@@ -18,8 +19,9 @@ import { DatabaseModule } from './database/database.module';
       load: [appConfig, authConfig, databaseConfig],
       envFilePath: '.env',
     }),
-    DatabaseModule, 
+    DatabaseModule,
     AuthModule,
+    OnboardingModule,
     CustomersModule,
     VendorsModule,
     AdminModule,
@@ -28,5 +30,3 @@ import { DatabaseModule } from './database/database.module';
   providers: [AppService],
 })
 export class AppModule {}
-
-

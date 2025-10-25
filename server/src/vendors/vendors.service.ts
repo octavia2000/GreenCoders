@@ -1,28 +1,40 @@
-import { Injectable, NotFoundException, ForbiddenException, HttpStatus } from '@nestjs/common';
+import { Injectable, NotFoundException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../auth/user/entities.ts/entities/user.entity';
-import { VendorProfileEntity } from './entities/vendor-profile.entity';
-import { BaseResponse } from './types/vendor-response.types';
+import { UserEntity } from '../database/entities/user.entity';
+import { VendorProfileEntity } from '../database/entities/vendor-profile.entity';
+import { VendorBusinessVerificationEntity } from '../database/entities/vendor-business-verification.entity';
+import {
+  BaseResponse,
+  VendorDashboardStats,
+  VendorProfileResponse,
+  PaginatedVendorsResponse,
+  VendorUpdateResponse,
+} from './types/vendor-response.types';
 import { QueryVendorsDto } from './dto/query-vendors.dto';
 import { UpdateVendorProfileDto } from './dto/update-vendor-profile.dto';
-import { VENDOR_BASIC_FIELDS, VENDOR_PROFILE_FIELDS } from './constants/vendor-select-fields';
+import { SubmitBusinessVerificationDto } from './dto/submit-business-verification.dto';
+import {
+  VENDOR_BASIC_FIELDS,
+  VENDOR_VERIFICATION_FIELDS,
+} from './constants/vendor-select-fields';
+import { InputSanitizationService } from '../shared/services/input-sanitization.service';
+import { VendorsRepository } from './repositories/vendors.repository';
+import {
+  mapVendorToBasicResponse,
+  mapVendorToProfileResponse,
+} from './mappers/vendor.mappers';
 import * as SYS_MSG from '../helpers/SystemMessages';
-
-export interface VendorDashboardStats {
-  totalVendors: number;
-  verifiedVendors: number;
-  pendingVerification: number;
-  recentVendors: any[];
-}
 
 @Injectable()
 export class VendorService {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
+    private readonly vendorsRepository: VendorsRepository,
+    private readonly sanitizationService: InputSanitizationService,
     @InjectRepository(VendorProfileEntity)
     private readonly vendorProfileRepository: Repository<VendorProfileEntity>,
+    @InjectRepository(VendorBusinessVerificationEntity)
+    private readonly businessVerificationRepository: Repository<VendorBusinessVerificationEntity>,
   ) {}
 
   /* 
@@ -31,39 +43,21 @@ export class VendorService {
   ========================================
   */
   async getVendorDashboard(): Promise<BaseResponse<VendorDashboardStats>> {
-    const [
-      totalVendors,
-      verifiedVendors,
-      pendingVerification,
-      recentVendors
-    ] = await Promise.all([
-      this.userRepository.count({ where: { role: 'VENDOR' } }),
-      this.vendorProfileRepository.count({ where: { isVerified: true } }),
-      this.vendorProfileRepository.count({ where: { isVerified: false } }),
-      this.userRepository.find({
-        where: { role: 'VENDOR' },
-        relations: ['vendorProfile'],
-        order: { createdAt: 'DESC' },
-        take: 5,
-        select: ['id', 'username', 'email', 'createdAt'],
-      })
-    ]);
+    const dashboardStats = await this.vendorsRepository.getDashboardStats();
+
+    const response: VendorDashboardStats = {
+      totalVendors: dashboardStats.totalVendors,
+      verifiedVendors: dashboardStats.verifiedVendors,
+      pendingVerification: dashboardStats.pendingVerification,
+      recentVendors: dashboardStats.recentVendors.map((vendor) =>
+        mapVendorToBasicResponse(vendor),
+      ),
+    };
 
     return {
-      statusCode: 200,
+      statusCode: HttpStatus.OK,
       message: SYS_MSG.VENDOR_DASHBOARD_RETRIEVED_SUCCESS,
-      data: {
-        totalVendors,
-        verifiedVendors,
-        pendingVerification,
-        recentVendors: recentVendors.map(vendor => ({
-          id: vendor.id,
-          username: vendor.username,
-          email: vendor.email,
-          isVerified: vendor.vendorProfile?.isVerified || false,
-          createdAt: vendor.createdAt,
-        })),
-      },
+      data: response,
     };
   }
 
@@ -72,30 +66,24 @@ export class VendorService {
   Get Self Vendor Profile
   ========================================
   */
-  async getSelfVendorProfile(userId: string): Promise<BaseResponse<any>> {
-    const vendor = await this.userRepository.findOne({
-      where: { id: userId, role: 'VENDOR' },
-      relations: ['vendorProfile'],
-      select: ['id', 'username', 'email', 'phoneNumber', 'isNumberVerified', 'isActive', 'createdAt'],
-    });
+  async getSelfVendorProfile(
+    userId: string,
+  ): Promise<BaseResponse<VendorProfileResponse>> {
+    const vendor = await this.vendorsRepository.findVendorByUserId(
+      userId,
+      VENDOR_BASIC_FIELDS as (keyof UserEntity)[],
+    );
 
     if (!vendor) {
       throw new NotFoundException(SYS_MSG.VENDOR_NOT_FOUND);
     }
 
+    const response: VendorProfileResponse = mapVendorToProfileResponse(vendor);
+
     return {
       statusCode: HttpStatus.OK,
       message: SYS_MSG.VENDOR_PROFILE_RETRIEVED_SUCCESS,
-      data: {
-        id: vendor.id,
-        username: vendor.username,
-        email: vendor.email,
-        phoneNumber: vendor.phoneNumber,
-        isNumberVerified: vendor.isNumberVerified,
-        isActive: vendor.isActive,
-        createdAt: vendor.createdAt,
-        vendorProfile: vendor.vendorProfile,
-      },
+      data: response,
     };
   }
 
@@ -104,65 +92,47 @@ export class VendorService {
   Get All Vendors (Paginated & Filtered)
   ========================================
   */
-  async getAllVendors(queryDto: QueryVendorsDto): Promise<BaseResponse<{ vendors: any[], total: number, page: number, limit: number }>> {
-    const { page = 1, limit = 10, isVerified, isActive, search } = queryDto;
-    const skip = (page - 1) * limit;
+  async getAllVendors(
+    queryDto: QueryVendorsDto,
+  ): Promise<BaseResponse<PaginatedVendorsResponse>> {
+    // Sanitize input parameters
+    const sanitizedPage =
+      this.sanitizationService.sanitizeNumber(queryDto.page) || 1;
+    const sanitizedLimit =
+      this.sanitizationService.sanitizeNumber(queryDto.limit) || 10;
+    const sanitizedSearch = queryDto.search
+      ? this.sanitizationService.sanitizeSearchQuery(queryDto.search)
+      : undefined;
+    const sanitizedIsVerified =
+      queryDto.isVerified !== undefined
+        ? this.sanitizationService.sanitizeBoolean(queryDto.isVerified)
+        : undefined;
+    const sanitizedIsActive =
+      queryDto.isActive !== undefined
+        ? this.sanitizationService.sanitizeBoolean(queryDto.isActive)
+        : undefined;
 
-    // ✅ Use Query Builder for better performance and flexibility
-    const queryBuilder = this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.vendorProfile', 'vendorProfile')
-      .select([...VENDOR_BASIC_FIELDS, ...VENDOR_PROFILE_FIELDS])
-      .where('user.role = :role', { role: 'VENDOR' }) // Only vendors
-      .orderBy('user.createdAt', 'DESC');
+    const filters = {
+      page: sanitizedPage,
+      limit: sanitizedLimit,
+      isVerified: sanitizedIsVerified,
+      isActive: sanitizedIsActive,
+      search: sanitizedSearch,
+    };
 
-    // Apply filters
-    if (isActive !== undefined) {
-      queryBuilder.andWhere('user.isActive = :isActive', { isActive });
-    }
+    const result = await this.vendorsRepository.findVendorsWithFilters(filters);
 
-    if (isVerified !== undefined) {
-      queryBuilder.andWhere('vendorProfile.isVerified = :isVerified', { isVerified });
-    }
-
-    if (search) {
-      queryBuilder.andWhere(
-        '(user.username ILIKE :search OR user.email ILIKE :search)',
-        { search: `%${search}%` }
-      );
-    }
-
-    // Pagination
-    queryBuilder.skip(skip).take(limit);
-
-    // Execute query
-    const [vendors, total] = await queryBuilder.getManyAndCount();
-
-    const vendorResponses = vendors.map(vendor => ({
-      id: vendor.id,
-      username: vendor.username,
-      email: vendor.email,
-      phoneNumber: vendor.phoneNumber,
-      firstName: vendor.vendorProfile?.firstName,
-      lastName: vendor.vendorProfile?.lastName,
-      profileImageUrl: vendor.vendorProfile?.profileImageUrl,
-      isNumberVerified: vendor.isNumberVerified,
-      isActive: vendor.isActive,
-      isVerified: vendor.vendorProfile?.isVerified || false,
-      verifiedAt: vendor.vendorProfile?.verifiedAt,
-      verifiedBy: vendor.vendorProfile?.verifiedBy,
-      createdAt: vendor.createdAt,
-    }));
+    const response: PaginatedVendorsResponse = {
+      vendors: result.vendors.map((vendor) => mapVendorToBasicResponse(vendor)),
+      total: result.total,
+      page: sanitizedPage,
+      limit: sanitizedLimit,
+    };
 
     return {
       statusCode: HttpStatus.OK,
       message: SYS_MSG.VENDORS_RETRIEVED_SUCCESS,
-      data: {
-        vendors: vendorResponses,
-        total,
-        page,
-        limit,
-      },
+      data: response,
     };
   }
 
@@ -171,24 +141,24 @@ export class VendorService {
   Get Vendor by ID
   ========================================
   */
-  async getVendorById(vendorId: string): Promise<BaseResponse<any>> {
-    const vendor = await this.userRepository.findOne({
-      where: { id: vendorId, role: 'VENDOR' },
-      relations: ['vendorProfile'],
-      select: ['id', 'username', 'email', 'isNumberVerified', 'createdAt'],
-    });
+  async getVendorById(
+    vendorId: string,
+  ): Promise<BaseResponse<VendorProfileResponse>> {
+    const vendor = await this.vendorsRepository.findVendorById(
+      vendorId,
+      VENDOR_BASIC_FIELDS as (keyof UserEntity)[],
+    );
 
     if (!vendor) {
       throw new NotFoundException(SYS_MSG.VENDOR_NOT_FOUND);
     }
 
+    const response: VendorProfileResponse = mapVendorToProfileResponse(vendor);
+
     return {
       statusCode: HttpStatus.OK,
       message: SYS_MSG.VENDOR_RETRIEVED_SUCCESS,
-      data: {
-        ...vendor,
-        vendorProfile: vendor.vendorProfile,
-      },
+      data: response,
     };
   }
 
@@ -197,96 +167,160 @@ export class VendorService {
   Update Vendor Profile (Personal info only)
   ========================================
   */
-  async updateVendorProfile(vendorId: string, updateData: UpdateVendorProfileDto): Promise<BaseResponse<any>> {
-    const vendor = await this.userRepository.findOne({
-      where: { id: vendorId, role: 'VENDOR' },
-      relations: ['vendorProfile'],
-    });
+  async updateVendorProfile(
+    vendorId: string,
+    updateData: UpdateVendorProfileDto,
+  ): Promise<BaseResponse<VendorUpdateResponse>> {
+    const vendorExists = await this.vendorsRepository.vendorExists(vendorId);
 
-    if (!vendor) {
+    if (!vendorExists) {
       throw new NotFoundException(SYS_MSG.VENDOR_NOT_FOUND);
     }
 
-    if (!vendor.vendorProfile) {
-      // Create vendor profile if it doesn't exist
-      const vendorProfile = this.vendorProfileRepository.create({
-        user: vendor,
-        ...updateData,
-      });
-      await this.vendorProfileRepository.save(vendorProfile);
-    } else {
-      // Update existing vendor profile
-      await this.vendorProfileRepository.update(vendor.vendorProfile.id, updateData);
-    }
+    await this.vendorsRepository.updateVendorProfile(vendorId, updateData);
+
+    const response: VendorUpdateResponse = {
+      vendorId,
+      message: SYS_MSG.VENDOR_PROFILE_UPDATED_SUCCESS,
+    };
 
     return {
       statusCode: HttpStatus.OK,
       message: SYS_MSG.VENDOR_PROFILE_UPDATED_SUCCESS,
-      data: { vendorId, message: SYS_MSG.VENDOR_PROFILE_UPDATED_SUCCESS },
+      data: response,
     };
   }
 
   /* 
   =======================================
-  Verify Vendor
+  Submit Business Verification
   ========================================
   */
-  async verifyVendor(vendorId: string, verifiedBy: string): Promise<BaseResponse<any>> {
-    const vendor = await this.userRepository.findOne({
-      where: { id: vendorId, role: 'VENDOR' },
-      relations: ['vendorProfile'],
+  async submitBusinessVerification(
+    userId: string,
+    verificationDto: SubmitBusinessVerificationDto,
+  ): Promise<BaseResponse<{ message: string }>> {
+    // Check if verification already exists
+    let verification = await this.businessVerificationRepository.findOne({
+      where: { userId },
     });
 
-    if (!vendor) {
-      throw new NotFoundException(SYS_MSG.VENDOR_NOT_FOUND);
+    if (verification) {
+      // Update existing verification
+      verification.businessName = verificationDto.businessName;
+      verification.businessIdNumber = verificationDto.businessIdNumber;
+      verification.businessWebsite = verificationDto.businessWebsite;
+      verification.businessEmail = verificationDto.businessEmail;
+      verification.socialLinks = verificationDto.socialLinks;
+      verification.verificationStatus = 'pending';
+      verification.verificationNotes = null;
+      verification.verifiedAt = null;
+      verification.verifiedBy = null;
+    } else {
+      // Create new verification
+      verification = this.businessVerificationRepository.create({
+        userId,
+        businessName: verificationDto.businessName,
+        businessIdNumber: verificationDto.businessIdNumber,
+        businessWebsite: verificationDto.businessWebsite,
+        businessEmail: verificationDto.businessEmail,
+        socialLinks: verificationDto.socialLinks,
+        verificationStatus: 'pending',
+      });
     }
 
-    if (!vendor.vendorProfile) {
-      throw new NotFoundException('Vendor profile not found');
-    }
-
-    await this.vendorProfileRepository.update(vendor.vendorProfile.id, {
-      isVerified: true,
-      verifiedAt: new Date(),
-      verifiedBy,
-    });
+    await this.businessVerificationRepository.save(verification);
 
     return {
-      statusCode: HttpStatus.OK,
-      message: SYS_MSG.VENDOR_VERIFIED_SUCCESS,
-      data: { vendorId },
+      statusCode: HttpStatus.CREATED,
+      message: 'Business verification submitted successfully',
+      data: {
+        message: 'Business verification submitted successfully',
+      },
     };
   }
 
   /* 
   =======================================
-  Reject Vendor Verification
+  Update Vendor Profile (Personal Info)
   ========================================
   */
-  async rejectVendorVerification(vendorId: string, reason: string): Promise<BaseResponse<any>> {
-    const vendor = await this.userRepository.findOne({
-      where: { id: vendorId, role: 'VENDOR' },
-      relations: ['vendorProfile'],
+  async updateVendorPersonalProfile(
+    userId: string,
+    profileDto: UpdateVendorProfileDto,
+  ): Promise<BaseResponse<{ message: string }>> {
+    // Check if profile exists
+    let profile = await this.vendorProfileRepository.findOne({
+      where: { userId },
     });
 
-    if (!vendor) {
-      throw new NotFoundException(SYS_MSG.VENDOR_NOT_FOUND);
+    if (profile) {
+      // Update existing profile
+      Object.assign(profile, profileDto);
+    } else {
+      // Create new profile
+      profile = this.vendorProfileRepository.create({
+        userId,
+        ...profileDto,
+      });
     }
 
-    if (!vendor.vendorProfile) {
-      throw new NotFoundException('Vendor profile not found');
-    }
-
-    await this.vendorProfileRepository.update(vendor.vendorProfile.id, {
-      isVerified: false,
-      verifiedAt: null,
-      verifiedBy: null,
-    });
+    await this.vendorProfileRepository.save(profile);
 
     return {
       statusCode: HttpStatus.OK,
-      message: SYS_MSG.VENDOR_VERIFICATION_REJECTED,
-      data: { vendorId, reason },
+      message: 'Vendor profile updated successfully',
+      data: {
+        message: 'Vendor profile updated successfully',
+      },
+    };
+  }
+
+
+  /* 
+  =======================================
+  Get Vendor Verification Status
+  ========================================
+  */
+  async getVendorVerificationStatus(
+    userId: string,
+  ): Promise<BaseResponse<{
+    verificationStatus: string;
+    businessName?: string;
+    businessIdNumber?: string;
+    businessWebsite?: string;
+    businessEmail?: string;
+    socialLinks?: any;
+    verificationNotes?: string;
+    verifiedAt?: Date;
+  }>> {
+    const verification = await this.businessVerificationRepository.findOne({
+      where: { userId },
+    });
+
+    if (!verification) {
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'No verification found',
+        data: {
+          verificationStatus: 'not_submitted',
+        },
+      };
+    }
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Verification status retrieved successfully',
+      data: {
+        verificationStatus: verification.verificationStatus,
+        businessName: verification.businessName,
+        businessIdNumber: verification.businessIdNumber,
+        businessWebsite: verification.businessWebsite,
+        businessEmail: verification.businessEmail,
+        socialLinks: verification.socialLinks,
+        verificationNotes: verification.verificationNotes,
+        verifiedAt: verification.verifiedAt,
+      },
     };
   }
 }

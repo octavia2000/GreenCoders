@@ -3,14 +3,25 @@ import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class QueryUsersDto {
-  @ApiProperty({ description: 'Page number', example: 1, required: false, minimum: 1 })
+  @ApiProperty({
+    description: 'Page number',
+    example: 1,
+    required: false,
+    minimum: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number = 1;
 
-  @ApiProperty({ description: 'Items per page', example: 10, required: false, minimum: 1, maximum: 100 })
+  @ApiProperty({
+    description: 'Items per page',
+    example: 10,
+    required: false,
+    minimum: 1,
+    maximum: 100,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -18,7 +29,11 @@ export class QueryUsersDto {
   @Max(100)
   limit?: number = 10;
 
-  @ApiProperty({ description: 'Filter by active status', example: true, required: false })
+  @ApiProperty({
+    description: 'Filter by active status',
+    example: true,
+    required: false,
+  })
   @IsOptional()
   @Type(() => Boolean)
   isActive?: boolean;
@@ -28,4 +43,3 @@ export class QueryUsersDto {
   @IsString()
   search?: string;
 }
-

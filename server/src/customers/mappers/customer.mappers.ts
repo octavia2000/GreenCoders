@@ -1,5 +1,10 @@
-import { UserEntity } from '../../auth/user/entities/user.entity';
-import { CustomerListResponse, UserBasicResponse, ProfileSettingsResponse, CustomerProfileResponse } from '../types/customer-response.types';
+import { UserEntity } from '../../database/entities/user.entity';
+import {
+  CustomerListResponse,
+  UserBasicResponse,
+  ProfileSettingsResponse,
+  CustomerProfileResponse,
+} from '../types/customer-response.types';
 
 /* 
 =======================================
@@ -8,31 +13,32 @@ Map To Customer List Item
 */
 export function mapToCustomerList(user: UserEntity): CustomerListResponse {
   return {
-      customer:{ 
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        profileImageUrl: (user as any).customerProfile?.profileImageUrl,
-        isActive: user.isActive,
-      } 
-    };
-  }
-
+    customer: {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      profileImageUrl: user.profileImageUrl,
+      isActive: user.isActive,
+    },
+  };
+}
 
 /* 
 =======================================
 Map To Customer Response
 =======================================
 */
-export function mapToCustomerResponse(user: UserEntity): CustomerProfileResponse {
+export function mapToCustomerResponse(
+  user: UserEntity,
+): CustomerProfileResponse {
   return {
     customer: {
       id: user.id,
       email: user.email,
       username: user.username,
-      firstName: (user as any).customerProfile?.firstName,
-      lastName: (user as any).customerProfile?.lastName,
-      profileImageUrl: (user as any).customerProfile?.profileImageUrl,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profileImageUrl: user.profileImageUrl,
       phoneNumber: user.phoneNumber,
       authMethod: user.authMethod as 'email' | 'google',
       isNumberVerified: user.isNumberVerified,
@@ -48,15 +54,17 @@ export function mapToCustomerResponse(user: UserEntity): CustomerProfileResponse
 Map To CustomerBasic Response
 =======================================
 */
-export function mapToCustomerBasicResponse(user: UserEntity): CustomerProfileResponse {
+export function mapToCustomerBasicResponse(
+  user: UserEntity,
+): CustomerProfileResponse {
   return {
     customer: {
       id: user.id,
       email: user.email,
       username: user.username,
-      firstName: (user as any).customerProfile?.firstName,
-      lastName: (user as any).customerProfile?.lastName,
-      profileImageUrl: (user as any).customerProfile?.profileImageUrl,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profileImageUrl: user.profileImageUrl,
       phoneNumber: user.phoneNumber,
       authMethod: user.authMethod as 'email' | 'google',
       isNumberVerified: user.isNumberVerified,
@@ -77,9 +85,9 @@ export function mapToUserBasicResponse(user: UserEntity): UserBasicResponse {
     id: user.id,
     email: user.email,
     username: user.username,
-    firstName: (user as any).customerProfile?.firstName,
-    lastName: (user as any).customerProfile?.lastName,
-    profileImageUrl: (user as any).customerProfile?.profileImageUrl,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    profileImageUrl: user.profileImageUrl,
     phoneNumber: user.phoneNumber,
     authMethod: user.authMethod as 'email' | 'google',
     isNumberVerified: user.isNumberVerified,
@@ -94,8 +102,8 @@ export function mapToUserBasicResponse(user: UserEntity): UserBasicResponse {
 Map To CustomerProfile Settings
 =======================================
 */
-export function mapToProfileSettings(user: UserEntity): ProfileSettingsResponse {
+export function mapToProfileSettings(
+  user: UserEntity,
+): ProfileSettingsResponse {
   return mapToCustomerBasicResponse(user);
 }
-
-

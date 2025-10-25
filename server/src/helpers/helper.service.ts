@@ -8,10 +8,11 @@ export class HelperService {
   Random String Generation (Cryptographically Secure)
   ========================================
   */
-  
+
   /* Generate cryptographically secure random string */
   generateRandomString(length: number): string {
-    return crypto.randomBytes(Math.ceil(length / 2))
+    return crypto
+      .randomBytes(Math.ceil(length / 2))
       .toString('hex')
       .slice(0, length);
   }
@@ -21,7 +22,7 @@ export class HelperService {
     const digits = '0123456789';
     let result = '';
     const bytes = crypto.randomBytes(length);
-    
+
     for (let i = 0; i < length; i++) {
       result += digits[bytes[i] % 10];
     }
@@ -33,7 +34,7 @@ export class HelperService {
   String Utilities
   ========================================
   */
-  
+
   /* Sanitize string for safe database storage */
   sanitizeString(input: string): string {
     return input.trim().replace(/[<>]/g, '');
@@ -59,7 +60,7 @@ export class HelperService {
   Validation Utilities (Currently using DTOs for primary validation)
   ========================================
   */
-  
+
   /* Basic email format validation */
   isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

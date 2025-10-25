@@ -20,5 +20,3 @@ export class ChangePasswordDto {
   @MaxLength(128)
   confirmPassword: string;
 }
-
-

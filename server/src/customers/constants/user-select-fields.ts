@@ -66,4 +66,3 @@ export const ADMIN_PROFILE_FIELDS = [
   'adminProfile.employeeId',
   'adminProfile.jobTitle',
 ] as const;
-

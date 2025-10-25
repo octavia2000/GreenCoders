@@ -3,23 +3,23 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
-import { SeedingCommand } from './database/seeding.command';
+// import { SeedCommand } from './database/seeders/seed.command';
 import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
+
   const configService = app.get(ConfigService);
   const port = configService.get('app.port') || 3000;
 
   // Run database seeding
-  try {
-    const seedingCommand = app.get(SeedingCommand);
-    await seedingCommand.runSeeding();
-  } catch (error) {
-    console.error('Failed to run database seeding:', error);
-  }
+  // try {
+  //   const seedingCommand = app.get(SeedCommand);
+  //   await seedingCommand.runSeeding();
+  // } catch (error) {
+  //   console.error('Failed to run database seeding:', error);
+  // }
 
   // Set global prefix
   app.setGlobalPrefix('api/v1');
@@ -43,7 +43,9 @@ async function bootstrap() {
   // Swagger configuration
   const config = new DocumentBuilder()
     .setTitle('Authentication API')
-    .setDescription('API documentation for user authentication system using cookies')
+    .setDescription(
+      'API documentation for user authentication system using cookies',
+    )
     .setVersion('1.0')
     .addCookieAuth('auth-cookie', {
       type: 'apiKey',

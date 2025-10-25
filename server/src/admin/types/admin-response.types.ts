@@ -6,11 +6,52 @@ export interface BaseResponse<T = any> {
   data: T;
 }
 
+export interface AdminDashboardStats {
+  totalVendors: number;
+  totalAdmins: number;
+  totalUsers: number;
+  recentVendors: any[];
+}
+
+export interface AdminInvitationResponse {
+  id: string;
+  email: string;
+  adminType: string;
+  status: string;
+  department?: string;
+  invitedByName: string;
+  expiresAt: Date;
+  createdAt: Date;
+}
+
+export interface AdminInvitationsListResponse {
+  invitations: AdminInvitationResponse[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface CustomerDetailsResponse {
+  id: string;
+  email: string;
+  username: string;
+  phoneNumber: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+  isNumberVerified: boolean;
+  authMethod: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface AdminResponse {
   id: string;
+  firstName?: string;
+  lastName?: string;
   department?: string;
-  permissions?: string[];
-  accessLevel: string;
+  accessLevel: 'super_admin' | 'store_admin' | 'vendor_admin' | 'customer_admin';
   employeeId?: string;
   jobTitle?: string;
   reportingManager?: string;
@@ -45,9 +86,5 @@ export interface AdminBasicResponse {
   firstName?: string;
   lastName?: string;
   department?: string;
-  accessLevel: 'super_admin' | 'admin' | 'moderator';
+  accessLevel: 'super_admin' | 'store_admin' | 'vendor_admin' | 'customer_admin';
 }
-
-
-
-
