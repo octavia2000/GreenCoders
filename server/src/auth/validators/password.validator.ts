@@ -25,7 +25,7 @@ export class IsStrongPasswordConstraint
   Validate Strong Password
   ========================================
   */
-  async validate(password: string, args: ValidationArguments) {
+  async validate(password: string, args: ValidationArguments): Promise<boolean> {
     if (!password) return false;
 
     // Check minimum length
@@ -43,11 +43,11 @@ export class IsStrongPasswordConstraint
     // Check for at least one special character
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return false;
 
-    // ✅ OPTIMIZED: Skip password uniqueness check for existing users updating their password
+    // Skip password uniqueness check for existing users updating their password
     const isUpdate = args.object && 'id' in args.object;
     if (isUpdate) return true;
 
-    // ✅ OPTIMIZED: For new users, check against a sample instead of all users
+    // For new users, check against a sample instead of all users
     const userCount = await this.userRepository.count();
     if (userCount > 1000) {
       // For large user bases, skip uniqueness check to avoid performance issues
@@ -55,13 +55,22 @@ export class IsStrongPasswordConstraint
     }
 
     // Check against a random sample of users instead of all users
-    const sampleUsers = await this.userRepository
-      .createQueryBuilder('user')
-      .select(['user.password'])
-      .orderBy('RANDOM()')
-      .limit(100)
-      .getMany();
-
+    const sampleSize = 100;
+    let sampleUsers: UserEntity[];
+    if (userCount <= sampleSize) {
+      sampleUsers = await this.userRepository
+        .createQueryBuilder('user')
+        .select(['user.password'])
+        .getMany();
+    } else {
+      const offset = Math.floor(Math.random() * (userCount - sampleSize + 1));
+      sampleUsers = await this.userRepository
+        .createQueryBuilder('user')
+        .select(['user.password'])
+        .skip(offset)
+        .take(sampleSize)
+        .getMany();
+    }
     for (const user of sampleUsers) {
       const isMatch = await bcrypt.compare(password, user.password);
       if (isMatch) {
@@ -72,7 +81,7 @@ export class IsStrongPasswordConstraint
     return true;
   }
 
-  defaultMessage(args: ValidationArguments) {
+  defaultMessage(args: ValidationArguments): string {
     return 'Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, one special character, and must be unique across all users';
   }
 }

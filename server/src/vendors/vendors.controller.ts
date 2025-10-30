@@ -226,27 +226,6 @@ export class VendorsController {
 
   /* 
   =======================================
-  Update Vendor Profile (Personal Info)
-  ========================================
-  */
-  @Put('profile')
-  @Roles(Role.VENDOR)
-  @UseGuards(RateLimitGuard)
-  @RateLimit(RATE_LIMITS.STRICT)
-  @ApiOperation({ summary: 'Update vendor profile (Personal info - Vendor only)' })
-  @ApiResponse({ status: 200, description: 'Vendor profile updated successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid input data' })
-  @ApiResponse({ status: 403, description: 'Access denied - Vendor role required' })
-  @ApiResponse({ status: 429, description: 'Too many requests' })
-  async updateVendorProfile(
-    @Body() profileDto: UpdateVendorProfileDto,
-    @Request() req,
-  ) {
-    return this.vendorsService.updateVendorPersonalProfile(req.user.id, profileDto);
-  }
-
-  /* 
-  =======================================
   Get Vendor Verification Status
   ========================================
   */

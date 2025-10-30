@@ -53,3 +53,6 @@ export class VendorEntity extends BaseEntity {
   @Column({ nullable: true })
   verifiedBy?: string;
 }
+
+
+

@@ -354,3 +354,6 @@ export class QueryAdminsDto {
   @IsBoolean()
   isActive?: boolean;
 }
+
+
+
