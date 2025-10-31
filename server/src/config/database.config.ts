@@ -15,11 +15,16 @@ export default () => ({
     migrations: ['dist/database/migrations/*.js'],
     synchronize: false,
     logging: false,
-    ssl:
-      process.env.DATABASE_SSL === 'require'
-        ? {
-            rejectUnauthorized: false,
-          }
-        : false,
+    ssl: (() => {
+      const sslFlag = process.env.DATABASE_SSL;
+      if (sslFlag === 'require') {
+        return process.env.NODE_ENV === 'development'
+          ? { rejectUnauthorized: false }
+          : { rejectUnauthorized: true };
+      }
+      if (sslFlag === 'true') return true;
+      // Default: enable SSL outside development to avoid "no encryption" errors
+      return process.env.NODE_ENV === 'development' ? false : true;
+    })(),
   },
 });

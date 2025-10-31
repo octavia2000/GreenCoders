@@ -8,7 +8,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AdminGuard } from '../auth/guards/admin.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { RequirePermissions } from '../auth/decorators/permissions.decorator';
-import { ADMIN_PERMISSIONS, AdminPermission } from './constants/admin-permissions';
+import { Public } from '../auth/decorators/public.decorator';
+import { ADMIN_PERMISSIONS } from './constants/admin-permissions';
 import { AdminInvitationStatus } from '../database/entities/admin-invitation.entity';
 import { Role } from '../auth/types/auth-response.types';
 import {
@@ -185,6 +186,7 @@ export class AdminController {
   Public Admin Setup Endpoints (No Auth Required)
   ========================================
   */
+  @Public()
   @Get('setup/validate')
   @ApiOperation({ summary: 'Validate admin invitation token (Public endpoint)' })
   @ApiQuery({ name: 'token', description: 'Invitation token from email' })
@@ -203,6 +205,7 @@ export class AdminController {
     return await this.adminService.validateInvitation(validateDto);
   }
 
+  @Public()
   @Post('setup/password')
   @ApiOperation({ summary: 'Setup admin password using invitation token (Public endpoint)' })
   @ApiResponse({ status: 201, description: 'Admin account created successfully' })

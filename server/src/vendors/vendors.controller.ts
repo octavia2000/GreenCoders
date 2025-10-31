@@ -147,6 +147,20 @@ export class VendorsController {
 
   /* 
   =======================================
+  Get Vendor Verification Status
+  ========================================
+  */
+  @Get('verification/status')
+  @Roles(Role.VENDOR)
+  @ApiOperation({ summary: 'Get vendor verification status (Vendor only)' })
+  @ApiResponse({ status: 200, description: 'Verification status retrieved successfully' })
+  @ApiResponse({ status: 403, description: 'Access denied - Vendor role required' })
+  async getVendorVerificationStatus(@Request() req) {
+    return this.vendorsService.getVendorVerificationStatus(req.user.id);
+  }
+
+  /* 
+  =======================================
   Get Vendor by ID (Admin only)
   ========================================
   */
@@ -222,20 +236,6 @@ export class VendorsController {
     @Request() req,
   ) {
     return this.vendorsService.submitBusinessVerification(req.user.id, verificationDto);
-  }
-
-  /* 
-  =======================================
-  Get Vendor Verification Status
-  ========================================
-  */
-  @Get('verification/status')
-  @Roles(Role.VENDOR)
-  @ApiOperation({ summary: 'Get vendor verification status (Vendor only)' })
-  @ApiResponse({ status: 200, description: 'Verification status retrieved successfully' })
-  @ApiResponse({ status: 403, description: 'Access denied - Vendor role required' })
-  async getVendorVerificationStatus(@Request() req) {
-    return this.vendorsService.getVendorVerificationStatus(req.user.id);
   }
 
 }

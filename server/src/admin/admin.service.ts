@@ -14,7 +14,7 @@ import { InviteAdminDto, SetupAdminPasswordDto, ValidateInvitationDto } from './
 import { CreateAdminDto, UpdateAdminDto, QueryAdminsDto } from './dto/admin.dto';
 import { EmailService } from '../shared/notifications/email.service';
 import * as SYS_MSG from '../helpers/SystemMessages';
-import * as bcrypt from 'bcrypt';
+// Note: Password hashing is handled by UserEntity hooks
 
 export interface AdminDashboardStats {
   totalVendors: number;
@@ -589,13 +589,10 @@ export class AdminService {
       throw new ConflictException('User with this email or username already exists');
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(createAdminDto.password, 10);
-
     // Create user
     const user = this.userRepository.create({
       email: createAdminDto.email,
-      password: hashedPassword,
+      password: createAdminDto.password, // Will be hashed by entity hooks
       username: createAdminDto.username,
       phoneNumber: createAdminDto.phoneNumber,
       firstName: createAdminDto.firstName,

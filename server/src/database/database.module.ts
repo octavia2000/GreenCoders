@@ -17,14 +17,10 @@ import { AdminInvitationEntity } from './entities/admin-invitation.entity';
         port: configService.get('database.port'),
         username: configService.get('database.username'),
         password: configService.get('database.password'),
-        database: configService.get('database.name'),
+        database: configService.get('database.database'),
         entities: [UserEntity, VendorEntity, VendorProfileEntity, VendorBusinessVerificationEntity, AdminInvitationEntity],
         synchronize: configService.get('database.synchronize'),
-        ssl: configService.get('database.ssl') === 'require' 
-          ? { rejectUnauthorized: false } 
-          : configService.get('database.ssl') === 'true' 
-          ? true 
-          : false,
+        ssl: configService.get('database.ssl'),
       }),
       inject: [ConfigService],
     }),

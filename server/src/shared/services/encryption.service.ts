@@ -1,3 +1,6 @@
+// Placeholder encryption service is intentionally commented out.
+// Rationale: Not currently used. When implementing, restore imports and logic,
+// and wire it into the modules that require encryption for sensitive fields.
 // import { Injectable } from '@nestjs/common';
 // import * as crypto from 'crypto';
 
