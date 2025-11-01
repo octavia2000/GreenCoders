@@ -91,7 +91,7 @@ jobs:
         with:
           context: ./client
           push: true
-          tags: anastesia/backend:latest
+          tags: anastesia/frontend:latest
           file: ./client/Dockerfile.dev
 
   
