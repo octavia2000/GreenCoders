@@ -65,10 +65,10 @@ jobs:
       - name: Build and Push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./api
+          context: ./server
           push: true
           tags: anastesia/backend:latest
-          file: ./api/Dockerfile
+          file: ./server/Dockerfile.dev
 
   build_frontend_docker_image_and_push: 
     runs-on: ubuntu-latest
@@ -92,7 +92,7 @@ jobs:
           context: ./client
           push: true
           tags: anastesia/backend:latest
-          file: ./client/Dockerfile
+          file: ./client/Dockerfile.dev
 
   
           
