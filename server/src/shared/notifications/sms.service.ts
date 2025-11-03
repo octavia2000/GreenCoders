@@ -20,19 +20,21 @@ export class SmsService {
     this.baseUrl = this.configService.get<string>('SENDCHAMP_BASE_URL');
 
     if (!this.apiKey || !this.senderId) {
-      this.logger.warn('SendChamp credentials not found. Test SMS will be sent.');
+      this.logger.warn(SYS_MSG.SMS_CREDENTIALS_NOT_FOUND);
     } else {
-      this.logger.log('SendChamp SMS service initialized');
+      this.logger.log(SYS_MSG.SMS_SERVICE_INITIALIZED);
     }
   }
-
 
   /* 
   =======================================
   Send OTP Method
   ========================================
   */
-  async sendOtp(phone: string, otp: string): Promise<{ success: boolean; message: string }> {
+  async sendOtp(
+    phone: string,
+    otp: string,
+  ): Promise<{ success: boolean; message: string }> {
     if (!phone || !otp) {
       throw new BadRequestException(SYS_MSG.MISSING_FIELDS);
     }
@@ -47,16 +49,16 @@ This code will expire in 5 minutes.`;
     // Test mode if credentials not available
     if (!this.apiKey || !this.senderId) {
       this.logger.log(`TEST SMS: Sending OTP ${otp} to ${champNumber}`);
-      return { success: true, message: 'Test SMS sent successfully' };
+      return { success: true, message: SYS_MSG.TEST_SMS_SENT };
     }
 
     try {
       const url = `${this.baseUrl}/sms/send`;
 
       const headers = {
-        'Authorization': `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
+        Accept: 'application/json',
       };
 
       const data = {
@@ -67,12 +69,13 @@ This code will expire in 5 minutes.`;
       };
 
       const response = await firstValueFrom(
-        this.httpService.post(url, data, { headers })
+        this.httpService.post(url, data, { headers }),
       );
 
-      this.logger.log(`OTP sent successfully to ${champNumber}. Status: ${response.data.status}`);
-      return { success: true, message: 'OTP sent successfully' };
-
+      this.logger.log(
+        `OTP sent successfully to ${champNumber}. Status: ${response.data.status}`,
+      );
+      return { success: true, message: SYS_MSG.SMS_OTP_SENT };
     } catch (error) {
       this.logger.error(`Failed to send OTP to ${champNumber}:`, error);
       throw new BadRequestException(SYS_MSG.OTP_SEND_FAILED);
@@ -89,20 +92,26 @@ This code will expire in 5 minutes.`;
       throw new BadRequestException(SYS_MSG.INVALID_PHONE_FORMAT);
     }
 
-    let sendchampNumber = phoneNumber.trim();
+    const sendchampNumber = phoneNumber.trim();
 
     // Handle different Nigerian phone number formats
     if (sendchampNumber.startsWith('234') && sendchampNumber.length === 13) {
       return sendchampNumber; // SendChamp wants 2348012345678
-    } else if (sendchampNumber.startsWith('0') && sendchampNumber.length === 11) {
+    } else if (
+      sendchampNumber.startsWith('0') &&
+      sendchampNumber.length === 11
+    ) {
       return '234' + sendchampNumber.substring(1);
-    } else if (sendchampNumber.startsWith('+234') && sendchampNumber.length === 14) {
+    } else if (
+      sendchampNumber.startsWith('+234') &&
+      sendchampNumber.length === 14
+    ) {
       return sendchampNumber.substring(1);
     }
 
-    this.logger.warn(`Unrecognized phone number format: ${phoneNumber}. Using as-is.`);
+    this.logger.warn(
+      `Unrecognized phone number format: ${phoneNumber}. Using as-is.`,
+    );
     return sendchampNumber;
   }
 }
-
-

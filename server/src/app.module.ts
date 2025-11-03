@@ -3,35 +3,30 @@ import { AppController } from './app.controller';
 import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import databaseConfig from './config/database.config';
+import { CustomersModule } from './customers/customers.module';
+import { VendorsModule } from './vendors/vendors.module';
+import { AdminModule } from './admin/admin.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 import { DatabaseModule } from './database/database.module';
+import appConfig from './config/app.config';
+import authConfig from './config/auth.config';
+import databaseConfig from './config/database.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({isGlobal: true,load: [databaseConfig],envFilePath: '.env'}),
-    DatabaseModule, 
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [appConfig, authConfig, databaseConfig],
+      envFilePath: '.env',
+    }),
+    DatabaseModule,
     AuthModule,
-    UsersModule,
+    OnboardingModule,
+    CustomersModule,
+    VendorsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
-
-/**
- * EndPoints
- * SignUp  POST/auth/signup
- * Login   POST/auth/login
- * Logout  POST/auth/logout
- * Verify otp  POST/auth/verify-otp
- * Resend otp  POST/auth/resend-otp
- * Foget password  POST/auth/forget-password
- * Reset password  POST/auth/reset-password
- * 
- * .config for sms
- * SENDCHAMP_API_KEY=sendchamp_live_$2a$10$FbLROTgE9wNoAAwc..CpBOtPTVOgkJhXydhaqjQhPpp6DNtyVln/m
- * SENDCHAMP_BASE_URL=https://api.sendchamp.com/api/v1
- * SENDCHAMP_SENDER_ID=Sendchamp
- */
-
