@@ -16,7 +16,7 @@ services:
       - "6379:6379"
 
   api:
-    image: aanstesia/greencoders-api:latest   # 👈 your pushed BE image
+    image: anstesia/greencoders-api:latest   
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -34,7 +34,7 @@ services:
       - "3000:3000"
 
   client:
-    image: anastesia/greencoders-client:latest  # 👈 your pushed FE image
+    image: anastesia/greencoders-client:latest 
     depends_on:
       - api
     ports:
