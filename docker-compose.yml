@@ -16,7 +16,7 @@ services:
       - "6379:6379"
 
   api:
-    image: anstesia/greencoders-api:latest   
+    image: anastesia/greencoders-api:latest   
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
