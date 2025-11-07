@@ -26,7 +26,7 @@ services:
       PGDATABASE: stagecraft_db
       PGPORT: 5432
       DATABASE_SSL: false
-      NODE_ENV: production
+      NODE_ENV: development
     depends_on:
       - postgres
       - redis
