@@ -1,20 +1,20 @@
-name: Docker Image CI
+name: EC2Deployment
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+
+permissions:
+  packages: write
+  contents: read
 
 jobs:
 
   push_to_registry:
-
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
 
     steps:
       - name: Check out the repo
@@ -41,3 +41,122 @@ jobs:
           file: ./server/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.BACKEND_IMAGE }}:latest
+
+  deploy_to_ec2:
+    needs: push_to_registry
+    name: deploy_to_ec2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Set up SSH Key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+
+            #!/bin/bash
+            set -e
+
+            echo "Ensuring Docker is running"
+            sudo systemctl start docker || true
+
+            echo "Pulling latest Docker images"
+            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.BACKEND_IMAGE }}:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.FRONTEND_IMAGE }}:latest
+            docker pull postgres:15-alpine
+            docker pull redis:7-alpine
+
+            echo "Killing any process using ports (if any)"
+            for PORT in ${{secrets.FE_PORT}} ${{secrets.BE_PORT}} 5432 6379; do
+              PID=$(lsof -ti tcp:$PORT) || true
+              if [ ! -z "$PID" ]; then
+                echo "Killing process $PID on port $PORT"
+                kill -9 $PID || true
+              fi
+            done
+
+            echo "Removing any existing containers"
+            docker rm -f ${{secrets.FE_CONT} ${{secrets.BE_CONT} redis postgres || true
+
+            echo "Creating Docker network"
+            docker network create greencoders-net || true
+
+            echo "Starting PostgreSQL container"
+            docker run -d \
+              --name postgres \
+              --network greencoders-net \
+              -e POSTGRES_USER=postgres \
+              -e POSTGRES_PASSWORD=postgres_password \
+              -e POSTGRES_DB=stagecraft_db \
+              -p 5432:5432 \
+              -v pgdata:/var/lib/postgresql/data \
+              postgres:15-alpine
+
+            echo "Starting Redis container"
+            docker run -d \
+              --name redis \
+              --network greencoders-net \
+              -p 6379:6379 \
+              redis:7-alpine
+
+            echo "Starting API container"
+            docker run -d \
+              --name ${{secrets.BE_CONT} \
+              --network greencoders-net \
+              -e REDIS_HOST=redis \
+              -e REDIS_PORT=6379 \
+              -e PGUSER=postgres \
+              -e PGPASSWORD=postgres_password \
+              -e PGHOST=postgres \
+              -e PGDATABASE=stagecraft_db \
+              -e PGPORT=5432 \
+              -e DATABASE_SSL=false \
+              -e NODE_ENV=development \
+              -p ${{secrets.BE_PORT}}:3000 \
+              ${{ secrets.DOCKER_USERNAME }}/${{ secrets.BACKEND_IMAGE }}:latest
+
+            echo "Starting Client container"
+            docker run -d \
+              --name ${{secrets.FE_CONT} \
+              --network greencoders-net \
+              -p ${{secrets.FE_PORT}}:80 \
+              ${{ secrets.DOCKER_USERNAME }}/${{ secrets.FRONTEND_IMAGE }}:latest
+
+            echo "Deployment completed successfully"
+            echo "Cleaning up old images and unused resources"
+            docker system prune -a -f
+          EOF
+
+      - name: Check FE & BE
+        run: |
+          echo "Waiting for containers"
+          sleep 15
+
+          for URL in \
+            "http://${{ secrets.SSH_HOST }}:${{secrets.BE_PORT}}" \
+            "http://${{ secrets.SSH_HOST }}:${{secrets.FE_PORT}}"; do
+            echo "Testing $URL"
+            if curl -fs --head "$URL" > /dev/null; then
+              echo "$URL is up"
+            else
+              echo "$URL is down"
+              exit 1
+            fi
+          done
+
+
+
