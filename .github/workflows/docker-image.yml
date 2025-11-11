@@ -12,38 +12,38 @@ permissions:
 
 jobs:
 
-  # push_to_registry:
-  #   name: Push Docker image to Docker Hub
-  #   runs-on: ubuntu-latest
+  push_to_registry:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Check out the repo
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
 
-  #     - name: Log in to Docker Hub
-  #       uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
-  #       with:
-  #         username: ${{ secrets.DOCKER_USERNAME }}
-  #         password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-  #     - name: Build Frontend and push Docker image
-  #       uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-  #       with:
-  #         context: ./client
-  #         file: ./client/Dockerfile
-  #         push: true
-  #         tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.FRONTEND_IMAGE }}:latest
+      - name: Build Frontend and push Docker image
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: ./client
+          file: ./client/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.FRONTEND_IMAGE }}:latest
 
-  #     - name: Build backend and push Docker image
-  #       uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-  #       with:
-  #         context: ./server
-  #         file: ./server/Dockerfile
-  #         push: true
-  #         tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.BACKEND_IMAGE }}:latest
+      - name: Build backend and push Docker image
+        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+        with:
+          context: ./server
+          file: ./server/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.BACKEND_IMAGE }}:latest
 
   deploy_to_ec2:
-    # needs: push_to_registry
+    needs: push_to_registry
     name: deploy_to_ec2
     runs-on: ubuntu-latest
 
@@ -63,86 +63,86 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      # - name: Deploy EC2
-      #   run: |
-      #     ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} \
-      #       ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+      - name: Deploy EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
 
-      #       #!/bin/bash
-      #       set -e
+            #!/bin/bash
+            set -e
 
-      #       echo "Ensuring Docker is running"
-      #       sudo systemctl start docker || true
+            echo "Ensuring Docker is running"
+            sudo systemctl start docker || true
 
-      #       echo "Pulling latest Docker images"
-      #       docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.BACKEND_IMAGE }}:latest
-      #       docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.FRONTEND_IMAGE }}:latest
-      #       docker pull postgres:15-alpine
-      #       docker pull redis:7-alpine
+            echo "Pulling latest Docker images"
+            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.BACKEND_IMAGE }}:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.FRONTEND_IMAGE }}:latest
+            docker pull postgres:15-alpine
+            docker pull redis:7-alpine
 
-      #       echo "Killing any process using ports (if any)"
-      #       for PORT in ${{secrets.FE_PORT}} ${{secrets.BE_PORT}} 5432 6379; do
-      #         PID=$(lsof -ti tcp:$PORT) || true
-      #         if [ ! -z "$PID" ]; then
-      #           echo "Killing process $PID on port $PORT"
-      #           kill -9 $PID || true
-      #         fi
-      #       done
+            echo "Killing any process using ports (if any)"
+            for PORT in ${{secrets.FE_PORT}} ${{secrets.BE_PORT}} 5432 6379; do
+              PID=$(lsof -ti tcp:$PORT) || true
+              if [ ! -z "$PID" ]; then
+                echo "Killing process $PID on port $PORT"
+                kill -9 $PID || true
+              fi
+            done
 
-      #       echo "Removing any existing containers"
-      #       docker rm -f ${{secrets.FE_CONT}} ${{secrets.BE_CONT}} redis postgres || true
+            echo "Removing any existing containers"
+            docker rm -f ${{secrets.FE_CONT}} ${{secrets.BE_CONT}} redis postgres || true
 
-      #       echo "Creating Docker network"
-      #       docker network create greencoders-net || true
+            echo "Creating Docker network"
+            docker network create greencoders-net || true
 
-      #       echo "Starting PostgreSQL container"
-      #       docker run -d \
-      #         --name postgres \
-      #         --network greencoders-net \
-      #         -e POSTGRES_USER=postgres \
-      #         -e POSTGRES_PASSWORD=postgres_password \
-      #         -e POSTGRES_DB=stagecraft_db \
-      #         -p 5432:5432 \
-      #         -v pgdata:/var/lib/postgresql/data \
-      #         postgres:15-alpine
+            echo "Starting PostgreSQL container"
+            docker run -d \
+              --name postgres \
+              --network greencoders-net \
+              -e POSTGRES_USER=postgres \
+              -e POSTGRES_PASSWORD=postgres_password \
+              -e POSTGRES_DB=stagecraft_db \
+              -p 5432:5432 \
+              -v pgdata:/var/lib/postgresql/data \
+              postgres:15-alpine
 
-      #       echo "Starting Redis container"
-      #       docker run -d \
-      #         --name redis \
-      #         --network greencoders-net \
-      #         -p 6379:6379 \
-      #         redis:7-alpine
+            echo "Starting Redis container"
+            docker run -d \
+              --name redis \
+              --network greencoders-net \
+              -p 6379:6379 \
+              redis:7-alpine
 
-      #       echo "Starting API container"
-      #       docker run -d \
-      #         --name ${{secrets.BE_CONT}} \
-      #         --network greencoders-net \
-      #         -e REDIS_HOST=redis \
-      #         -e REDIS_PORT=6379 \
-      #         -e PGUSER=postgres \
-      #         -e PGPASSWORD=postgres_password \
-      #         -e PGHOST=postgres \
-      #         -e PGDATABASE=stagecraft_db \
-      #         -e PGPORT=5432 \
-      #         -e DATABASE_SSL=false \
-      #         -e NODE_ENV=development \
-      #         -p ${{secrets.BE_PORT}}:3000 \
-      #         ${{ secrets.DOCKER_USERNAME }}/${{ secrets.BACKEND_IMAGE }}:latest
+            echo "Starting API container"
+            docker run -d \
+              --name ${{secrets.BE_CONT}} \
+              --network greencoders-net \
+              -e REDIS_HOST=redis \
+              -e REDIS_PORT=6379 \
+              -e PGUSER=postgres \
+              -e PGPASSWORD=postgres_password \
+              -e PGHOST=postgres \
+              -e PGDATABASE=stagecraft_db \
+              -e PGPORT=5432 \
+              -e DATABASE_SSL=false \
+              -e NODE_ENV=development \
+              -p ${{secrets.BE_PORT}}:3000 \
+              ${{ secrets.DOCKER_USERNAME }}/${{ secrets.BACKEND_IMAGE }}:latest
 
-      #       echo "Starting Client container"
-      #       docker run -d \
-      #         --name ${{secrets.FE_CONT}} \
-      #         --network greencoders-net \
-      #         -p ${{secrets.FE_PORT}}:80 \
-      #         ${{ secrets.DOCKER_USERNAME }}/${{ secrets.FRONTEND_IMAGE }}:latest
+            echo "Starting Client container"
+            docker run -d \
+              --name ${{secrets.FE_CONT}} \
+              --network greencoders-net \
+              -p ${{secrets.FE_PORT}}:80 \
+              ${{ secrets.DOCKER_USERNAME }}/${{ secrets.FRONTEND_IMAGE }}:latest
 
-      #       echo "Deployment completed successfully"
-      #       echo "Cleaning up old images and unused resources"
-      #       docker system prune -a -f
-      #     EOF
+            echo "Deployment completed successfully"
+            echo "Cleaning up old images and unused resources"
+            docker system prune -a -f
+          EOF
 
-      # - name: Wait for Containers
-      #   run: sleep 15
+      - name: Wait for Containers
+        run: sleep 10
 
       - name: Check Backend
         run: |
