@@ -143,20 +143,23 @@ jobs:
 
       - name: Check FE & BE
         run: |
-          echo "Waiting for containers"
-          sleep 15
+          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            echo "Waiting for containers"
+            sleep 15
 
-          for URL in \
-            "http://${{ secrets.SSH_HOST }}:${{secrets.BE_PORT}}" \
-            "http://${{ secrets.SSH_HOST }}:${{secrets.FE_PORT}}"; do
-            echo "Testing $URL"
-            if curl -fs --head "$URL" > /dev/null; then
-              echo "$URL is up"
-            else
-              echo "$URL is down"
-              exit 1
-            fi
-          done
+            for URL in \
+              "http://${{ secrets.SSH_HOST }}:${{secrets.BE_PORT}}" \
+              "http://${{ secrets.SSH_HOST }}:${{secrets.FE_PORT}}"; do
+              echo "Testing $URL"
+              if curl -fs --head "$URL" > /dev/null; then
+                echo "$URL is up"
+              else
+                echo "$URL is down"
+                exit 1
+              fi
+            done
+          EOF
 
 
 
