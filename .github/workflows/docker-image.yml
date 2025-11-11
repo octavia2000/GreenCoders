@@ -141,25 +141,37 @@ jobs:
             docker system prune -a -f
           EOF
 
-      - name: Check FE & BE
-        run: |
-          ssh -o StrictHostKeyChecking=no -p ${{ secrets.SSH_PORT }} \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            echo "Waiting for containers"
-            sleep 15
+      - name: Wait for Containers
+        run: sleep 15
 
-            for URL in \
-              "http://${{ secrets.SSH_HOST }}:${{secrets.BE_PORT}}" \
-              "http://${{ secrets.SSH_HOST }}:${{secrets.FE_PORT}}"; do
-              echo "Testing $URL"
-              if curl -fs --head "$URL" > /dev/null; then
-                echo "$URL is up"
-              else
-                echo "$URL is down"
-                exit 1
-              fi
-            done
-          EOF
+      - name: Check Backend
+        run: |
+          BE_URL="http://${{ secrets.SSH_HOST }}:${{ secrets.BE_PORT }}"
+          for i in {1..6}; do
+            if curl -fs --head "$BE_URL" > /dev/null; then
+              echo "Backend is up"
+              exit 0
+            fi
+            echo "Backend not ready (attempt $i/6), retrying..."
+            sleep 10
+          done
+          echo "Backend failed to start"
+          exit 1
+
+      - name: Check Frontend
+        run: |
+          FE_URL="http://${{ secrets.SSH_HOST }}:${{ secrets.FE_PORT }}"
+          for i in {1..6}; do
+            if curl -fs --head "$FE_URL" > /dev/null; then
+              echo "Frontend is up"
+              exit 0
+            fi
+            echo "Frontend not ready (attempt $i/6), retrying..."
+            sleep 10
+          done
+          echo "Frontend failed to start"
+          exit 1
+          
 
 
 
