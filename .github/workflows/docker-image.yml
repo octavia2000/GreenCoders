@@ -90,7 +90,7 @@ jobs:
             done
 
             echo "Removing any existing containers"
-            docker rm -f ${{secrets.FE_CONT} ${{secrets.BE_CONT} redis postgres || true
+            docker rm -f ${{secrets.FE_CONT}} ${{secrets.BE_CONT}} redis postgres || true
 
             echo "Creating Docker network"
             docker network create greencoders-net || true
@@ -115,7 +115,7 @@ jobs:
 
             echo "Starting API container"
             docker run -d \
-              --name ${{secrets.BE_CONT} \
+              --name ${{secrets.BE_CONT}} \
               --network greencoders-net \
               -e REDIS_HOST=redis \
               -e REDIS_PORT=6379 \
@@ -131,7 +131,7 @@ jobs:
 
             echo "Starting Client container"
             docker run -d \
-              --name ${{secrets.FE_CONT} \
+              --name ${{secrets.FE_CONT}} \
               --network greencoders-net \
               -p ${{secrets.FE_PORT}}:80 \
               ${{ secrets.DOCKER_USERNAME }}/${{ secrets.FRONTEND_IMAGE }}:latest
